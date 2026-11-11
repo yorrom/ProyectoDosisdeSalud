@@ -1,0 +1,580 @@
+<!doctype html>
+<html><head><meta charset="utf-8">
+<style>html,body{margin:0;background:#050a14;overflow:hidden}canvas{display:block}</style>
+</head><body>
+<canvas id="c" width="1080" height="1920"></canvas>
+<script>
+// R3 · Ejercicio · "Moverte después de comer: qué le pasa a tu glucosa"
+// Todo se dibuja en función del tiempo global t (segundos). draw(t) es determinista.
+const W = 1080, H = 1920;
+const cv = document.getElementById('c');
+const ctx = cv.getContext('2d');
+const mk = () => { const c = document.createElement('canvas'); c.width = W; c.height = H; return c; };
+const bodyL = mk(), bodyX = bodyL.getContext('2d');
+const legL = mk(), legX = legL.getContext('2d');
+const layA = mk(), layAX = layA.getContext('2d');
+const layB = mk(), layBX = layB.getContext('2d');
+
+// ---------- paleta ----------
+const C = {
+  bg0: '#0b1830', bg1: '#040912', cyan: '#22d3ee', cyanSoft: 'rgba(34,211,238,', violet: '#a78bfa',
+  green: '#4ade80', white: '#f1f6ff', body: '#cfe4ff', warm: '#ffb45e', muted: '#8aa0bf'
+};
+
+// ---------- línea de tiempo (sincronizada con la voz en off) ----------
+const S = { s1: [0, 3.8], s2: [3.8, 8.4], rw: [8.4, 9.4], s3: [9.4, 16.6], s4: [16.6, 25.1], s5: [25.1, 32.2], s6: [32.2, 39.5] };
+const DUR = 39.5;
+const VO = [ // inicio, duración, frases (subtítulos)
+  [0.15, 3.68, ['Terminaste de comer y te sentaste.', 'Mira tu glucosa.']],
+  [3.85, 3.44, ['Sube, hace un pico…', 'y tarda en bajar.']],
+  [8.55, 7.92, ['Misma comida, pero caminando unos minutos.', 'Al contraerse, tus músculos captan glucosa,', 'incluso con menos insulina.']],
+  [16.7, 8.32, ['En estudios controlados, pausas de 2 a 5 minutos caminando', 'suavizaron la glucosa después de comer,', 'comparado con seguir sentado.']],
+  [25.2, 6.96, ['Estar de pie ayuda un poco.', 'Caminar ayuda más.', 'Y mientras más cerca de terminar de comer, mejor.']],
+  [32.3, 6.8, ['No necesitas gimnasio. Necesitas levantarte.', 'Envíaselo a quien se sienta', 'apenas termina de comer.']],
+];
+
+// ---------- utilidades ----------
+const clamp = (v, a = 0, b = 1) => Math.max(a, Math.min(b, v));
+const lerp = (a, b, k) => a + (b - a) * k;
+const seg = (t, a, b) => clamp((t - a) / (b - a));
+const ease = k => k * k * (3 - 2 * k);
+const eio = k => k < .5 ? 4 * k * k * k : 1 - Math.pow(-2 * k + 2, 3) / 2;
+const eout = k => 1 - Math.pow(1 - k, 3);
+const rad = d => d * Math.PI / 180;
+function rnd(i) { const x = Math.sin(i * 127.1 + 311.7) * 43758.5453; return x - Math.floor(x); }
+function rr(c, x, y, w, h, r) { c.beginPath(); c.roundRect(x, y, w, h, r); }
+
+// ---------- curvas de glucosa (forma ilustrativa, sin ejes ni números) ----------
+function curveF(u, A, p, d, tail) {
+  if (u <= p) { const s = Math.sin(Math.PI * u / (2 * p)); return A * s * s; }
+  const z = (u - p) / d; return A * (tail + (1 - tail) * Math.exp(-z * z));
+}
+const SIT = u => curveF(u, 1.0, 0.32, 0.40, 0.24);
+const STAND = u => curveF(u, 0.80, 0.30, 0.36, 0.17);
+const WALK = u => curveF(u, 0.55, 0.27, 0.30, 0.10);
+
+function curvePath(c, f, rect, prog) {
+  const [x, y, w, h] = rect; const n = 120; const end = clamp(prog);
+  c.beginPath();
+  for (let i = 0; i <= n; i++) {
+    const u = end * i / n; const px = x + u * w, py = y + h - f(u) * h;
+    i ? c.lineTo(px, py) : c.moveTo(px, py);
+  }
+}
+function drawCurve(c, f, rect, prog, o) {
+  if (prog <= 0.001) return;
+  const [x, y, w, h] = rect; const col = o.color || C.cyan; const a = o.alpha ?? 1;
+  c.save(); c.globalAlpha = a;
+  // relleno suave
+  if (o.fill !== false) {
+    curvePath(c, f, rect, prog); const ue = clamp(prog);
+    c.lineTo(x + ue * w, y + h); c.lineTo(x, y + h); c.closePath();
+    const g = c.createLinearGradient(0, y, 0, y + h);
+    g.addColorStop(0, o.fillTop || 'rgba(34,211,238,0.22)'); g.addColorStop(1, 'rgba(34,211,238,0)');
+    c.fillStyle = g; c.fill();
+  }
+  curvePath(c, f, rect, prog);
+  c.lineCap = 'round'; c.lineJoin = 'round';
+  if (o.dash) c.setLineDash(o.dash);
+  c.shadowColor = o.glow || col; c.shadowBlur = o.blur ?? 28;
+  c.strokeStyle = col; c.lineWidth = o.lw || 10; c.stroke();
+  c.shadowBlur = 0; c.setLineDash([]);
+  // punto guía
+  if (o.dot !== false && prog < 0.999) {
+    const u = clamp(prog); const px = x + u * w, py = y + h - f(u) * h;
+    c.fillStyle = '#fff'; c.shadowColor = col; c.shadowBlur = 30;
+    c.beginPath(); c.arc(px, py, (o.lw || 10) * 1.1, 0, Math.PI * 2); c.fill();
+  }
+  c.restore();
+}
+function baseline(c, rect, a) {
+  const [x, y, w, h] = rect; c.save(); c.globalAlpha = a * 0.35; c.strokeStyle = C.muted;
+  c.setLineDash([4, 14]); c.lineWidth = 3; c.lineCap = 'round';
+  c.beginPath(); c.moveTo(x, y + h); c.lineTo(x + w, y + h); c.stroke(); c.restore();
+}
+
+// ---------- figura humana translúcida (vista lateral, mira a la derecha) ----------
+const L = { torso: 150, neck: 22, head: 40, upper: 84, fore: 80, thigh: 100, shin: 100 };
+const P = {
+  sit:   { lean: 4,  th: [88, 92],  sh: [2, -2],   ua: [18, 26], fa: [70, 76] },
+  stand: { lean: 0,  th: [3, -3],   sh: [0, 0],    ua: [4, -4],  fa: [8, 4] },
+};
+function walkPose(ph, amp = 1) {
+  const s = Math.sin(ph), s2 = Math.sin(ph + Math.PI);
+  const th = [24 * s * amp, 24 * s2 * amp];
+  const kb = k => Math.max(0, Math.sin(k + 1.9)) * 46 * amp;
+  return { lean: 5 * amp, th, sh: [th[0] - kb(ph), th[1] - kb(ph + Math.PI)],
+           ua: [-22 * s * amp, -22 * s2 * amp], fa: [-22 * s * amp + 30 * amp, -22 * s2 * amp + 30 * amp] };
+}
+function blendPose(a, b, k) {
+  const r = { lean: lerp(a.lean, b.lean, k) };
+  for (const key of ['th', 'sh', 'ua', 'fa']) r[key] = [lerp(a[key][0], b[key][0], k), lerp(a[key][1], b[key][1], k)];
+  return r;
+}
+const dirv = a => [Math.sin(rad(a)), Math.cos(rad(a))]; // 0° = hacia abajo, + = hacia delante
+function joints(pose, hx, hy, s) {
+  const J = { hip: [hx, hy] };
+  const up = rad(pose.lean);
+  J.sho = [hx + Math.sin(up) * L.torso * s, hy - Math.cos(up) * L.torso * s];
+  J.head = [J.sho[0] + Math.sin(up) * (L.neck + L.head) * s, J.sho[1] - Math.cos(up) * (L.neck + L.head) * s];
+  for (const i of [0, 1]) {
+    const t = dirv(pose.th[i]), sh = dirv(pose.sh[i]);
+    J['knee' + i] = [hx + t[0] * L.thigh * s, hy + t[1] * L.thigh * s];
+    J['foot' + i] = [J['knee' + i][0] + sh[0] * L.shin * s, J['knee' + i][1] + sh[1] * L.shin * s];
+    const ua = dirv(pose.ua[i]), fa = dirv(pose.fa[i]);
+    J['elb' + i] = [J.sho[0] + ua[0] * L.upper * s, J.sho[1] + ua[1] * L.upper * s];
+    J['hand' + i] = [J['elb' + i][0] + fa[0] * L.fore * s, J['elb' + i][1] + fa[1] * L.fore * s];
+  }
+  return J;
+}
+function limb(c, pts, w) { c.lineWidth = w; c.beginPath(); c.moveTo(...pts[0]); for (const p of pts.slice(1)) c.lineTo(...p); c.stroke(); }
+function legsOnly(c, J, s, col) {
+  c.strokeStyle = col; c.lineCap = 'round'; c.lineJoin = 'round';
+  for (const i of [1, 0]) limb(c, [J.hip, J['knee' + i], J['foot' + i]], 36 * s);
+}
+function drawFigure(c, pose, hx, hy, s, o = {}) {
+  const J = joints(pose, hx, hy, s);
+  bodyX.clearRect(0, 0, W, H);
+  bodyX.strokeStyle = '#fff'; bodyX.fillStyle = '#fff'; bodyX.lineCap = 'round'; bodyX.lineJoin = 'round';
+  limb(bodyX, [J.sho, J.elb1, J.hand1], 28 * s);
+  legsOnly(bodyX, J, s, '#fff');
+  limb(bodyX, [J.hip, J.sho], 54 * s);
+  bodyX.beginPath(); bodyX.arc(J.head[0], J.head[1], L.head * s, 0, Math.PI * 2); bodyX.fill();
+  limb(bodyX, [J.sho, J.elb0, J.hand0], 28 * s);
+  // teñido del cuerpo
+  bodyX.globalCompositeOperation = 'source-in';
+  const g = bodyX.createLinearGradient(0, J.head[1] - 50 * s, 0, hy + 200 * s);
+  g.addColorStop(0, o.tintTop || '#e8f3ff'); g.addColorStop(1, o.tintBot || '#9cc4ff');
+  bodyX.fillStyle = g; bodyX.fillRect(0, 0, W, H);
+  bodyX.globalCompositeOperation = 'source-over';
+  const a = o.alpha ?? 1;
+  c.save();
+  c.globalAlpha = 0.34 * a; c.shadowColor = o.glow || 'rgba(140,200,255,0.9)'; c.shadowBlur = 40 * s;
+  c.drawImage(bodyL, 0, 0);
+  c.shadowBlur = 0; c.globalAlpha = 0.16 * a; c.drawImage(bodyL, 0, 0);
+  c.restore();
+  // borde fino (contorno) para dar lectura de silueta
+  c.save(); c.globalAlpha = 0.55 * a; c.strokeStyle = 'rgba(220,236,255,0.9)'; c.lineWidth = 2.5;
+  c.beginPath(); c.arc(J.head[0], J.head[1], L.head * s + 1, 0, Math.PI * 2); c.stroke(); c.restore();
+  // piernas brillando en violeta
+  if (o.legGlow > 0) {
+    legX.clearRect(0, 0, W, H); legsOnly(legX, J, s, C.violet);
+    c.save(); c.globalAlpha = o.legGlow; c.shadowColor = C.violet; c.shadowBlur = 50 * s;
+    c.drawImage(legL, 0, 0); c.shadowBlur = 0; c.globalAlpha = o.legGlow * 0.6; c.drawImage(legL, 0, 0); c.restore();
+  }
+  return J;
+}
+
+// ---------- sofá minimalista ----------
+function drawCouch(c, x, floorY, a) {
+  if (a <= 0) return;
+  c.save(); c.globalAlpha = a;
+  const seatY = floorY - 112, w = 440;
+  const g = c.createLinearGradient(0, seatY - 170, 0, floorY);
+  g.addColorStop(0, '#2b3a55'); g.addColorStop(1, '#172235');
+  c.fillStyle = g;
+  rr(c, x - w / 2 - 34, seatY - 185, 70, 195, 30); c.fill();            // respaldo (izquierda, figura mira a la derecha)
+  rr(c, x - w / 2 - 34, seatY - 10, w + 40, 66, 26); c.fill();          // asiento
+  rr(c, x + w / 2 - 20, seatY - 60, 56, 116, 24); c.fill();             // brazo
+  c.fillStyle = '#3c4f73'; rr(c, x - w / 2 - 34, seatY - 10, w + 40, 10, 6); c.fill();
+  c.fillStyle = '#121b2b'; rr(c, x - w / 2 - 10, seatY + 56, 18, 40, 6); c.fill(); rr(c, x + w / 2 - 6, seatY + 56, 18, 40, 6); c.fill();
+  c.restore();
+}
+function floor(c, y, a, col = 'rgba(138,160,191,') {
+  c.save(); const g = c.createLinearGradient(80, 0, W - 80, 0);
+  g.addColorStop(0, col + '0)'); g.addColorStop(.5, col + (0.35 * a) + ')'); g.addColorStop(1, col + '0)');
+  c.strokeStyle = g; c.lineWidth = 3; c.beginPath(); c.moveTo(80, y); c.lineTo(W - 80, y); c.stroke(); c.restore();
+}
+
+// ---------- texto ----------
+function title(c, txt, t, t0, t1, o = {}) {
+  const kin = ease(seg(t, t0, t0 + 0.45)), kout = 1 - ease(seg(t, t1 - 0.35, t1));
+  const a = kin * kout; if (a <= 0) return;
+  const lines = Array.isArray(txt) ? txt : [txt];
+  const size = o.size || 76, y0 = o.y || 330;
+  c.save(); c.globalAlpha = a; c.textAlign = 'center'; c.textBaseline = 'alphabetic';
+  c.font = `800 ${size}px Inter, "Inter Display", sans-serif`;
+  c.letterSpacing = '2px';
+  lines.forEach((ln, i) => {
+    const y = y0 + i * size * 1.12 + (1 - kin) * 30;
+    c.fillStyle = C.white; c.shadowColor = 'rgba(0,0,0,0.5)'; c.shadowBlur = 20;
+    if (o.parts && o.parts[i]) { // segmentos coloreados en una línea
+      const parts = o.parts[i]; let total = 0; parts.forEach(p => total += c.measureText(p[0]).width);
+      let x = W / 2 - total / 2; c.textAlign = 'left';
+      parts.forEach(p => { c.fillStyle = p[1]; c.fillText(p[0], x, y); x += c.measureText(p[0]).width; });
+      c.textAlign = 'center';
+    } else c.fillText(ln, W / 2, y);
+  });
+  // barra de acento
+  const by = y0 + (lines.length - 1) * size * 1.12 + 36;
+  c.shadowBlur = 18; c.shadowColor = o.accent || C.cyan; c.fillStyle = o.accent || C.cyan;
+  const bw = 120 * kin; rr(c, W / 2 - bw / 2, by, bw, 8, 4); c.fill();
+  c.restore();
+}
+function label(c, txt, x, y, a, col = C.white, size = 34, weight = 700, align = 'center') {
+  if (a <= 0) return; c.save(); c.globalAlpha = a; c.font = `${weight} ${size}px Inter, sans-serif`;
+  c.letterSpacing = '1px'; c.textAlign = align; c.fillStyle = col; c.fillText(txt, x, y); c.restore();
+}
+function wrap(c, text, maxW) {
+  const words = text.split(' '); const lines = []; let cur = '';
+  for (const w of words) { const tst = cur ? cur + ' ' + w : w; if (c.measureText(tst).width > maxW && cur) { lines.push(cur); cur = w; } else cur = tst; }
+  if (cur) lines.push(cur); return lines;
+}
+function subtitles(c, t) {
+  for (const [st, du, phrases] of VO) {
+    if (t < st || t > st + du + 0.15) continue;
+    const total = phrases.reduce((s, p) => s + p.length, 0);
+    let acc = st;
+    for (const p of phrases) {
+      const d = du * p.length / total;
+      if (t >= acc && t < acc + d + (p === phrases[phrases.length - 1] ? 0.15 : 0)) {
+        const k = ease(seg(t, acc, acc + 0.15));
+        c.save(); c.font = '600 44px Inter, sans-serif'; c.letterSpacing = '0px';
+        const lines = wrap(c, p, 860); const lh = 58; const bh = lines.length * lh + 34;
+        const widest = Math.max(...lines.map(l => c.measureText(l).width));
+        const y = 1588 - bh / 2;
+        c.globalAlpha = k; c.fillStyle = 'rgba(3,8,18,0.62)'; rr(c, W / 2 - widest / 2 - 30, y, widest + 60, bh, 22); c.fill();
+        c.fillStyle = '#ffffff'; c.textAlign = 'center'; c.textBaseline = 'middle';
+        lines.forEach((l, i) => c.fillText(l, W / 2, y + 17 + lh / 2 + i * lh));
+        c.restore(); return;
+      }
+      acc += d;
+    }
+  }
+}
+function brand(c, t) {
+  c.save(); c.globalAlpha = 0.75; c.font = '700 28px Inter, sans-serif'; c.letterSpacing = '5px';
+  c.fillStyle = C.cyan; c.beginPath(); c.arc(92, 150, 9, 0, Math.PI * 2); c.fill();
+  c.fillStyle = C.white; c.textAlign = 'left'; c.fillText('DOSIS DE SALUD', 116, 160); c.restore();
+}
+
+// ---------- fondo ----------
+function background(c, t, warm = 0) {
+  const g = c.createRadialGradient(W / 2, H * 0.42, 80, W / 2, H * 0.5, H * 0.75);
+  g.addColorStop(0, warm > 0 ? mixHex('#0b1830', '#3a2412', warm) : C.bg0);
+  g.addColorStop(1, warm > 0 ? mixHex('#040912', '#140b05', warm) : C.bg1);
+  c.fillStyle = g; c.fillRect(0, 0, W, H);
+  // partículas de polvo
+  c.save();
+  for (let i = 0; i < 40; i++) {
+    const x = rnd(i) * W, y = (rnd(i + 50) * H - t * (8 + rnd(i + 9) * 18)) % H;
+    const yy = y < 0 ? y + H : y; c.globalAlpha = 0.08 + rnd(i + 3) * 0.12;
+    c.fillStyle = warm > 0.5 ? '#ffd9a8' : '#9fd8ff'; c.beginPath(); c.arc(x, yy, 1.5 + rnd(i + 7) * 2.5, 0, Math.PI * 2); c.fill();
+  }
+  c.restore();
+}
+function mixHex(a, b, k) {
+  const p = h => [1, 3, 5].map(i => parseInt(h.slice(i, i + 2), 16));
+  const A = p(a), B = p(b); return 'rgb(' + A.map((v, i) => Math.round(lerp(v, B[i], k))).join(',') + ')';
+}
+
+// ================== ESCENAS ==================
+const CH1 = [130, 560, 820, 420]; // rectángulo del gráfico (escenas 1–3)
+const FLOOR = 1480, FX = 470;
+
+// Escenas 1, 2, rebobinado y 3 comparten el mismo plano
+function sceneHome(c, t) {
+  background(c, t);
+  // ---- estado de la figura ----
+  let pose, hipY, legGlow = 0, couchA = 1, figX = FX;
+  const sitK = eio(seg(t, 0.2, 1.3));                // se sienta
+  const rwK = eio(seg(t, S.rw[0], S.rw[1]));         // rebobinado: se levanta (inverso)
+  const seated = sitK * (1 - rwK);
+  const walkA = ease(seg(t, S.s3[0], S.s3[0] + 0.6));
+  pose = blendPose(P.stand, P.sit, seated); hipY = lerp(FLOOR - 200, FLOOR - 100, seated);
+  if (t > S.s3[0]) { pose = blendPose(P.stand, walkPose((t - S.s3[0]) * 5.2, 1), walkA); hipY = FLOOR - 200 + Math.abs(Math.sin((t - S.s3[0]) * 5.2)) * -6 * walkA; }
+  if (t > S.rw[0]) couchA = lerp(1, 0.35, ease(seg(t, S.rw[0], S.s3[0] + 0.3)));
+  legGlow = ease(seg(t, S.s3[0] + 0.8, S.s3[0] + 1.6)) * (0.75 + 0.25 * Math.sin(t * 6));
+
+  // ---- gráfico ----
+  baseline(c, CH1, 1);
+  let sitProg;
+  if (t < S.rw[0]) sitProg = 0.16 * ease(seg(t, 1.2, S.s1[1])) + 0.84 * eio(seg(t, S.s2[0], S.s2[1] - 0.2));
+  else sitProg = 1 - eio(seg(t, S.rw[0], S.rw[1] - 0.1));
+  // fantasma de la curva sentada durante la escena 3
+  const ghost = ease(seg(t, S.s3[0] + 0.2, S.s3[0] + 1.2));
+  if (ghost > 0) drawCurve(c, SIT, CH1, 1, { alpha: 0.28 * ghost, dash: [10, 16], lw: 6, fill: false, dot: false, blur: 0 });
+  drawCurve(c, SIT, CH1, sitProg, { lw: 11 });
+  // pulso en el pico
+  const pk = seg(t, 4.9, 6.0);
+  if (pk > 0 && pk < 1 && t < S.rw[0]) {
+    const [x, y, w, h] = CH1; const px = x + 0.32 * w, py = y + h - h;
+    c.save(); c.globalAlpha = (1 - pk) * 0.9; c.strokeStyle = C.cyan; c.lineWidth = 5;
+    c.beginPath(); c.arc(px, py, 20 + pk * 90, 0, Math.PI * 2); c.stroke(); c.restore();
+  }
+  if (t > S.s2[0] + 1.0 && t < S.rw[0]) label(c, 'PICO', CH1[0] + 0.32 * CH1[2], CH1[1] - 40, ease(seg(t, 5.0, 5.5)), C.cyan, 34, 800);
+  // curva caminando, se dibuja en la escena 3
+  const walkProg = eio(seg(t, S.s3[0] + 1.6, S.s3[1] - 0.4));
+  drawCurve(c, WALK, CH1, walkProg, { lw: 11, color: C.cyan });
+
+  // ---- esferas de glucosa hacia los músculos ----
+  drawCouch(c, FX + 10, FLOOR, couchA);
+  floor(c, FLOOR + 4, 1);
+  const J = drawFigure(c, pose, figX, hipY, 1, { legGlow });
+  if (t > S.s3[0] + 0.8) spheres(c, t - (S.s3[0] + 0.8), J, ease(seg(t, S.s3[0] + 0.8, S.s3[0] + 1.4)) * (1 - ease(seg(t, S.s3[1] - 0.2, S.s3[1] + 0.6))));
+
+  // ---- rebobinado ----
+  if (t > S.rw[0] - 0.05 && t < S.rw[1] + 0.25) rewindFX(c, t);
+
+  // ---- textos ----
+  title(c, 'TERMINASTE DE COMER', t, 0.25, S.s2[0] + 0.1);
+  title(c, ['MISMA COMIDA', '+ CAMINAR'], t, S.s3[0] - 0.1, S.s3[1] + 0.3, { parts: [null, [['+ ', C.white], ['CAMINAR', C.violet]]], accent: C.violet, y: 300 });
+}
+function spheres(c, tt, J, a) {
+  if (a <= 0) return;
+  const N = 34;
+  c.save();
+  for (let i = 0; i < N; i++) {
+    const period = 1.7, off = rnd(i) * period; let k = ((tt + off) % period) / period;
+    if (tt + off < period * (0.4 + rnd(i + 2))) continue;
+    const leg = i % 2; const tk = 0.35 + rnd(i + 5) * 0.5;
+    const tx = lerp(J.hip[0], J['knee' + leg][0], tk) + (rnd(i + 11) - .5) * 20, ty = lerp(J.hip[1], J['knee' + leg][1], tk) + (rnd(i + 12) - .5) * 20;
+    const sx = 160 + rnd(i + 20) * 760, sy = 960 + rnd(i + 21) * 40;
+    const cx = (sx + tx) / 2 + (rnd(i + 30) - .5) * 300, cy = Math.min(sy, ty) - 40;
+    const kk = eio(k);
+    const x = (1 - kk) * (1 - kk) * sx + 2 * (1 - kk) * kk * cx + kk * kk * tx;
+    const y = (1 - kk) * (1 - kk) * sy + 2 * (1 - kk) * kk * cy + kk * kk * ty;
+    const r = (7 + rnd(i + 40) * 6) * (k > 0.85 ? (1 - (k - 0.85) / 0.15) : 1);
+    c.globalAlpha = a * (k < 0.1 ? k / 0.1 : 1) * 0.95;
+    c.fillStyle = C.cyan; c.shadowColor = C.cyan; c.shadowBlur = 22;
+    c.beginPath(); c.arc(x, y, Math.max(0, r), 0, Math.PI * 2); c.fill();
+  }
+  c.restore();
+}
+function rewindFX(c, t) {
+  const a = Math.sin(Math.PI * seg(t, S.rw[0] - 0.05, S.rw[1] + 0.25));
+  c.save();
+  // líneas de barrido
+  c.globalAlpha = 0.18 * a; c.fillStyle = '#bfe9ff';
+  for (let i = 0; i < 9; i++) { const y = ((rnd(i) * H) + t * 2600 * (0.6 + rnd(i + 4))) % H; c.fillRect(0, y, W, 3 + rnd(i + 8) * 6); }
+  // tinte
+  c.globalAlpha = 0.10 * a; c.fillStyle = C.cyan; c.fillRect(0, 0, W, H);
+  // icono ◀◀
+  c.globalAlpha = a; c.fillStyle = C.white; c.shadowColor = C.cyan; c.shadowBlur = 20;
+  const x = W - 210, y = 300;
+  for (const dx of [0, 52]) { c.beginPath(); c.moveTo(x + dx + 50, y - 34); c.lineTo(x + dx, y); c.lineTo(x + dx + 50, y + 34); c.closePath(); c.fill(); }
+  c.font = '800 34px Inter, sans-serif'; c.letterSpacing = '4px'; c.textAlign = 'center'; c.fillText('REBOBINA', x + 75, y + 90);
+  c.restore();
+}
+
+// Escena 4: curvas superpuestas
+function scene4(c, t) {
+  background(c, t);
+  const k = eio(seg(t, S.s4[0], S.s4[0] + 0.9));
+  const R = [lerp(CH1[0], 110, k), lerp(CH1[1], 640, k), lerp(CH1[2], 860, k), lerp(CH1[3], 640, k)];
+  baseline(c, R, 1);
+  // figura y sofá se desvanecen hacia abajo
+  if (k < 1) {
+    drawCouch(c, FX + 10, FLOOR + k * 200, 0.35 * (1 - k));
+    drawFigure(c, walkPose((t - S.s3[0]) * 5.2, 1), FX, FLOOR - 200 + k * 200, 1, { alpha: 1 - k, legGlow: 0.8 * (1 - k) });
+  }
+  // área entre curvas (verde)
+  const ga = ease(seg(t, S.s4[0] + 1.2, S.s4[0] + 2.2));
+  if (ga > 0) {
+    const [x, y, w, h] = R; c.save(); c.globalAlpha = ga * (0.75 + 0.25 * Math.sin(t * 3));
+    c.beginPath(); for (let i = 0; i <= 120; i++) { const u = i / 120; c.lineTo(x + u * w, y + h - SIT(u) * h); }
+    for (let i = 120; i >= 0; i--) { const u = i / 120; c.lineTo(x + u * w, y + h - WALK(u) * h); }
+    c.closePath(); const g = c.createLinearGradient(0, y, 0, y + h);
+    g.addColorStop(0, 'rgba(74,222,128,0.30)'); g.addColorStop(1, 'rgba(74,222,128,0.06)'); c.fillStyle = g; c.fill(); c.restore();
+  }
+  drawCurve(c, SIT, R, 1, { alpha: 0.5, lw: 9, fill: false, dot: false, blur: 12 });
+  drawCurve(c, WALK, R, 1, { lw: 12, glow: C.green, blur: 20 + 20 * ga, fillTop: 'rgba(74,222,128,0.18)' });
+  // halo verde sobre la curva baja
+  if (ga > 0) { c.save(); c.globalAlpha = ga * 0.5; curvePath(c, WALK, R, 1); c.strokeStyle = C.green; c.lineWidth = 4; c.shadowColor = C.green; c.shadowBlur = 40; c.stroke(); c.restore(); }
+  // etiquetas
+  const la = ease(seg(t, S.s4[0] + 0.9, S.s4[0] + 1.5));
+  label(c, 'SENTADO', R[0] + 0.32 * R[2], R[1] - 28, la * 0.85, '#9fdcf0', 34, 700);
+  label(c, 'CAMINANDO', R[0] + 0.52 * R[2] + 150, R[1] + R[3] - WALK(0.52) * R[3] + 2, la, C.green, 36, 800, 'left');
+  // fichas de pausas 2–5 min
+  const pa = ease(seg(t, S.s4[0] + 2.2, S.s4[0] + 2.8));
+  if (pa > 0) {
+    c.save(); c.globalAlpha = pa;
+    const xs = [0.22, 0.5, 0.78]; xs.forEach((u, i) => {
+      const kk = ease(seg(t, S.s4[0] + 2.2 + i * 0.25, S.s4[0] + 2.7 + i * 0.25));
+      const px = R[0] + u * R[2], py = R[1] + R[3] + 80;
+      c.globalAlpha = kk; c.fillStyle = 'rgba(74,222,128,0.14)'; c.strokeStyle = 'rgba(74,222,128,0.7)'; c.lineWidth = 3;
+      rr(c, px - 70, py - 34, 140, 68, 34); c.fill(); c.stroke();
+      miniWalker(c, px, py + 2, t * 5 + i, C.green);
+    });
+    c.restore();
+    label(c, 'pausas cortas caminando', W / 2, R[1] + R[3] + 180, pa * 0.8, C.muted, 32, 600);
+  }
+  title(c, '2 A 5 MINUTOS', t, S.s4[0] + 0.3, S.s4[1] + 0.3, { accent: C.green });
+}
+function miniWalker(c, x, y, ph, col) {
+  c.save(); c.strokeStyle = col; c.lineWidth = 5; c.lineCap = 'round'; c.fillStyle = col;
+  c.beginPath(); c.arc(x, y - 22, 6, 0, Math.PI * 2); c.fill();
+  c.beginPath(); c.moveTo(x, y - 14); c.lineTo(x + 2, y + 4); c.stroke();
+  const s = Math.sin(ph) * 9; c.beginPath(); c.moveTo(x + 2, y + 4); c.lineTo(x + 2 + s, y + 20); c.moveTo(x + 2, y + 4); c.lineTo(x + 2 - s, y + 20); c.stroke();
+  c.beginPath(); c.moveTo(x + 1, y - 8); c.lineTo(x + 1 - s * 0.8, y + 4); c.moveTo(x + 1, y - 8); c.lineTo(x + 1 + s * 0.8, y + 4); c.stroke();
+  c.restore();
+}
+
+// Escena 5: tres figuras, tres curvas
+function scene5(c, t) {
+  background(c, t);
+  const cols = [
+    { x: 190, f: SIT, name: 'SENTADO', col: '#9fdcf0', kind: 'sit' },
+    { x: 540, f: STAND, name: 'DE PIE', col: C.cyan, kind: 'stand' },
+    { x: 890, f: WALK, name: 'CAMINANDO', col: C.green, kind: 'walk' },
+  ];
+  const t0 = S.s5[0];
+  const floorY = 1330;
+  floor(c, floorY + 3, 1);
+  cols.forEach((cl, i) => {
+    const ap = ease(seg(t, t0 + 0.1 + i * 0.25, t0 + 0.7 + i * 0.25));
+    const R = [cl.x - 140, 560, 280, 300];
+    c.save(); c.globalAlpha = ap;
+    // tarjeta
+    c.fillStyle = 'rgba(255,255,255,0.035)'; c.strokeStyle = 'rgba(255,255,255,0.08)'; c.lineWidth = 2;
+    rr(c, cl.x - 165, 500, 330, 900, 36); c.fill(); c.stroke();
+    c.restore();
+    baseline(c, R, ap);
+    const prog = eio(seg(t, t0 + 0.6 + i * 1.0, t0 + 1.9 + i * 1.0));
+    drawCurve(c, cl.f, R, prog, { lw: 8, color: i === 2 ? C.cyan : C.cyan, glow: i === 2 ? C.green : C.cyan, alpha: i === 0 ? 0.75 : 1, blur: 18,
+      fillTop: i === 2 ? 'rgba(74,222,128,0.2)' : 'rgba(34,211,238,0.2)' });
+    // marcador de pico
+    if (prog > 0.35) {
+      const p = [0.32, 0.30, 0.27][i]; const px = R[0] + p * R[2], py = R[1] + R[3] - cl.f(p) * R[3];
+      c.save(); c.globalAlpha = ease(seg(prog, 0.35, 0.5)); c.fillStyle = '#fff'; c.shadowColor = cl.col; c.shadowBlur = 20;
+      c.beginPath(); c.arc(px, py, 9, 0, Math.PI * 2); c.fill(); c.restore();
+    }
+    // figura
+    const s = 0.62; let pose, hipY;
+    if (cl.kind === 'sit') { pose = P.sit; hipY = floorY - 100 * s; drawStool(c, cl.x, floorY, s, ap); }
+    else if (cl.kind === 'stand') { pose = P.stand; hipY = floorY - 200 * s; }
+    else { pose = walkPose((t - t0) * 5.2); hipY = floorY - 200 * s - Math.abs(Math.sin((t - t0) * 5.2)) * 4; }
+    drawFigure(c, pose, cl.x - (cl.kind === 'sit' ? 30 : 0), hipY, s, { alpha: ap, legGlow: cl.kind === 'walk' ? 0.7 * ap : 0 });
+    label(c, cl.name, cl.x, 1385, ap, cl.col, 32, 800);
+  });
+  // flecha "menos pico"
+  const aa = ease(seg(t, t0 + 3.6, t0 + 4.2));
+  if (aa > 0) {
+    c.save(); c.globalAlpha = aa; c.strokeStyle = C.green; c.fillStyle = C.green; c.lineWidth = 5; c.lineCap = 'round';
+    c.shadowColor = C.green; c.shadowBlur = 16;
+    c.beginPath(); c.moveTo(250, 470); c.quadraticCurveTo(540, 430, 820, 480); c.stroke();
+    c.beginPath(); c.moveTo(838, 486); c.lineTo(808, 462); c.lineTo(806, 498); c.closePath(); c.fill(); c.restore();
+    label(c, 'menos pico', 540, 432, aa * 0.9, C.green, 30, 700);
+  }
+  // chip: cuanto antes, mejor
+  const ca = ease(seg(t, t0 + 4.4, t0 + 5.0)) * (1 - ease(seg(t, S.s5[1] - 0.2, S.s5[1] + 0.4)));
+  if (ca > 0) {
+    c.save(); c.globalAlpha = ca; const y = 1440 + (1 - ca) * 20;
+    c.fillStyle = 'rgba(255,180,94,0.14)'; c.strokeStyle = 'rgba(255,180,94,0.85)'; c.lineWidth = 3;
+    rr(c, W / 2 - 290, y, 580, 84, 42); c.fill(); c.stroke();
+    clock(c, W / 2 - 220, y + 42, 24, t * 2.5, C.warm);
+    c.fillStyle = '#ffe2bf'; c.font = '700 34px Inter, sans-serif'; c.textAlign = 'left'; c.textBaseline = 'middle';
+    c.fillText('cuanto antes, mejor', W / 2 - 175, y + 44); c.restore();
+  }
+  title(c, ['DE PIE AYUDA ·', 'CAMINAR AYUDA MÁS'], t, t0 + 0.2, S.s5[1] + 0.3,
+    { size: 66, y: 270, parts: [null, [['CAMINAR ', C.green], ['AYUDA MÁS', C.white]]], accent: C.green });
+}
+function drawStool(c, x, floorY, s, a) {
+  c.save(); c.globalAlpha = a * 0.9; c.fillStyle = '#24334d';
+  rr(c, x - 95, floorY - 100 * s - 8, 130, 22, 10); c.fill();
+  c.fillStyle = '#18233a'; rr(c, x - 80, floorY - 100 * s + 12, 12, 100 * s - 12, 4); c.fill(); rr(c, x + 12, floorY - 100 * s + 12, 12, 100 * s - 12, 4); c.fill();
+  c.restore();
+}
+function clock(c, x, y, r, ang, col) {
+  c.save(); c.strokeStyle = col; c.fillStyle = col; c.lineWidth = Math.max(3, r * 0.14); c.lineCap = 'round';
+  c.shadowColor = col; c.shadowBlur = 12;
+  c.beginPath(); c.arc(x, y, r, 0, Math.PI * 2); c.stroke();
+  c.beginPath(); c.moveTo(x, y); c.lineTo(x + Math.sin(ang) * r * 0.75, y - Math.cos(ang) * r * 0.75); c.stroke();
+  c.beginPath(); c.moveTo(x, y); c.lineTo(x + Math.sin(ang / 12) * r * 0.5, y - Math.cos(ang / 12) * r * 0.5); c.stroke();
+  c.beginPath(); c.arc(x, y, r * 0.1, 0, Math.PI * 2); c.fill();
+  c.restore();
+}
+
+// Escena 6: pasillo con luz cálida
+function scene6(c, t) {
+  const t0 = S.s6[0], tt = t - t0;
+  background(c, t, 1);
+  const floorY = 1330, speed = 230, scroll = tt * speed;
+  // pared
+  const wg = c.createLinearGradient(0, 420, 0, floorY);
+  wg.addColorStop(0, '#24170d'); wg.addColorStop(1, '#3a2615');
+  c.fillStyle = wg; c.fillRect(0, 430, W, floorY - 430);
+  // zócalo y piso
+  c.fillStyle = '#4a311b'; c.fillRect(0, floorY - 18, W, 18);
+  const fg = c.createLinearGradient(0, floorY, 0, floorY + 260); fg.addColorStop(0, '#2c1c10'); fg.addColorStop(1, 'rgba(10,6,3,0)');
+  c.fillStyle = fg; c.fillRect(0, floorY, W, 260);
+  for (let i = -1; i < 12; i++) { // tablas del piso
+    const x = ((i * 140 - scroll * 1.0) % (140 * 12) + 140 * 12) % (140 * 12) - 140;
+    c.strokeStyle = 'rgba(255,190,120,0.08)'; c.lineWidth = 2; c.beginPath(); c.moveTo(x, floorY); c.lineTo(x - 60, floorY + 200); c.stroke();
+  }
+  // puertas y lámparas (parallax)
+  const period = 620;
+  for (let i = -1; i < 4; i++) {
+    const x = ((i * period - scroll) % (period * 3) + period * 3) % (period * 3) - 300;
+    // marco de puerta
+    c.save(); c.fillStyle = '#1a0f07'; rr(c, x, 760, 230, floorY - 760 - 18, 8); c.fill();
+    c.strokeStyle = '#6b4524'; c.lineWidth = 10; c.strokeRect(x, 760, 230, floorY - 760 - 18);
+    c.fillStyle = '#c99a5b'; c.beginPath(); c.arc(x + 196, 1060, 9, 0, Math.PI * 2); c.fill(); c.restore();
+    // lámpara de pared con charco de luz cálida
+    const lx = x + 420;
+    const lg = c.createRadialGradient(lx, 700, 10, lx, 760, 420);
+    lg.addColorStop(0, 'rgba(255,190,110,0.55)'); lg.addColorStop(0.4, 'rgba(255,160,80,0.16)'); lg.addColorStop(1, 'rgba(255,140,60,0)');
+    c.fillStyle = lg; c.fillRect(lx - 450, 330, 900, floorY - 330 + 120);
+    c.fillStyle = '#ffd59a'; c.shadowColor = '#ffb45e'; c.shadowBlur = 40; rr(c, lx - 34, 670, 68, 40, 14); c.fill(); c.shadowBlur = 0;
+    // cuadro
+    c.strokeStyle = 'rgba(255,200,140,0.25)'; c.lineWidth = 6; c.strokeRect(lx - 70, 850, 140, 110);
+  }
+  // techo oscuro
+  const tg = c.createLinearGradient(0, 330, 0, 470); tg.addColorStop(0, 'rgba(4,9,18,1)'); tg.addColorStop(1, 'rgba(4,9,18,0)');
+  c.fillStyle = tg; c.fillRect(0, 330, W, 140);
+  // figura caminando
+  const s = 0.95, ph = tt * 5.6;
+  const J = drawFigure(c, walkPose(ph), 470, floorY - 200 * s - Math.abs(Math.sin(ph)) * 6, s,
+    { tintTop: '#fff3e2', tintBot: '#ffd1a1', glow: 'rgba(255,190,120,0.9)', legGlow: 0.35 });
+  // sombra
+  c.save(); c.globalAlpha = 0.35; c.fillStyle = '#000'; c.beginPath(); c.ellipse(475, floorY + 6, 110, 14, 0, 0, Math.PI * 2); c.fill(); c.restore();
+  // reloj girando a su lado
+  clock(c, J.head[0] + 150, J.head[1] + 30, 46, tt * 3.2, C.warm);
+  // final: llamado a compartir
+  const sa = ease(seg(t, 35.4, 36.0));
+  if (sa > 0) {
+    c.save(); c.globalAlpha = sa; const y = 1405;
+    c.fillStyle = 'rgba(34,211,238,0.14)'; c.strokeStyle = 'rgba(34,211,238,0.85)'; c.lineWidth = 3;
+    rr(c, W / 2 - 230, y, 460, 84, 42); c.fill(); c.stroke();
+    // avión de papel
+    const px = W / 2 - 160, py = y + 42; c.fillStyle = C.cyan; c.shadowColor = C.cyan; c.shadowBlur = 14;
+    c.beginPath(); c.moveTo(px - 26, py - 4); c.lineTo(px + 28, py - 22); c.lineTo(px + 6, py + 24); c.lineTo(px - 2, py + 4); c.closePath(); c.fill();
+    c.shadowBlur = 0; c.fillStyle = '#dff8ff'; c.font = '800 36px Inter, sans-serif'; c.textAlign = 'left'; c.textBaseline = 'middle';
+    c.letterSpacing = '2px'; c.fillText('ENVÍASELO', W / 2 - 110, y + 44); c.restore();
+  }
+  title(c, ['TERMINAS DE COMER:', 'MUÉVETE'], t, t0 + 0.2, DUR + 1, { parts: [null, [['MUÉVETE', C.warm]]], accent: C.warm, y: 290 });
+}
+
+// ================== composición ==================
+function render(fn, layer, lx, t) { lx.setTransform(1, 0, 0, 1, 0, 0); lx.globalAlpha = 1; lx.clearRect(0, 0, W, H); fn(lx, t); return layer; }
+function draw(t) {
+  ctx.globalAlpha = 1; ctx.clearRect(0, 0, W, H);
+  const X1 = [S.s5[0] - 0.05, S.s5[0] + 0.55]; // 4 → 5
+  const X2 = [S.s6[0] - 0.05, S.s6[0] + 0.6];  // 5 → 6
+  let a, b, k = 0;
+  if (t < S.s4[0]) { sceneHome(ctx, t); }
+  else if (t < X1[0]) { scene4(ctx, t); }
+  else if (t < X1[1]) { a = scene4; b = scene5; k = ease(seg(t, ...X1)); }
+  else if (t < X2[0]) { scene5(ctx, t); }
+  else if (t < X2[1]) { a = scene5; b = scene6; k = ease(seg(t, ...X2)); }
+  else scene6(ctx, t);
+  if (a) {
+    render(a, layA, layAX, t); render(b, layB, layBX, t);
+    ctx.drawImage(layA, 0, 0); ctx.globalAlpha = k; ctx.drawImage(layB, 0, 0); ctx.globalAlpha = 1;
+  }
+  brand(ctx, t);
+  subtitles(ctx, t);
+  // viñeta
+  const vg = ctx.createRadialGradient(W / 2, H / 2, H * 0.35, W / 2, H / 2, H * 0.75);
+  vg.addColorStop(0, 'rgba(0,0,0,0)'); vg.addColorStop(1, 'rgba(0,0,0,0.45)');
+  ctx.fillStyle = vg; ctx.fillRect(0, 0, W, H);
+  // fundido de entrada / salida
+  const fade = Math.max(1 - seg(t, 0, 0.3), seg(t, DUR - 0.4, DUR));
+  if (fade > 0) { ctx.fillStyle = `rgba(0,0,0,${fade})`; ctx.fillRect(0, 0, W, H); }
+}
+window.draw = draw; window.DUR = DUR;
+window.ready = document.fonts.load('800 76px Inter').then(() => document.fonts.load('600 44px Inter')).then(() => true);
+// vista previa: ?t=12.3
+const qt = new URLSearchParams(location.search).get('t'); if (qt !== null) window.ready.then(() => draw(parseFloat(qt)));
+</script>
+</body></html>
