@@ -1,0 +1,2 @@
+- Cabina presurizada a una «altitud» máxima de 8.000 pies (≈ 2.400 m): FAA, 14 CFR § 25.841 — https://www.ecfr.gov/current/title-14/chapter-I/subchapter-C/part-25/subpart-D/subject-group-ECFR0b5ae4b1b2ac1d1/section-25.841
+- Barotrauma del oído al volar, trompa de Eustaquio y tragar/bostezar para igualar: Mayo Clinic — https://www.mayoclinic.org/diseases-conditions/airplane-ear/symptoms-causes/syc-20351701

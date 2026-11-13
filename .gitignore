@@ -1,0 +1,4 @@
+node_modules/
+.claude/skills/editar-reels-claude/models/
+__pycache__/
+videos/*.mp4

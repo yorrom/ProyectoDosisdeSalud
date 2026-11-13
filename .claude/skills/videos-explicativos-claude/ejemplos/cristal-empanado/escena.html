@@ -1,0 +1,496 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><title>Cristal empañado</title>
+<link rel="stylesheet" href="motor/explica.css">
+<script src="voz/timeline.js"></script>
+<script src="motor/explica.js"></script>
+<script src="motor/materiales.js"></script>
+<style>
+  #lienzo { background: #07070B; }
+  .escena { position: absolute; inset: 0; width: 1080px; height: 1920px; }
+  .escena svg { position: absolute; inset: 0; width: 1080px; height: 1920px; }
+  .callout { position: absolute; padding: 14px 26px 14px 20px; border-radius: 20px; background: rgba(16,15,22,.72); backdrop-filter: blur(10px);
+    border: 2px solid rgba(255,255,255,.16); font-family: 'Bricolage'; font-weight: 700; font-size: 60px; letter-spacing: -1px; white-space: nowrap; line-height: 1.02;
+    box-shadow: 0 18px 40px -12px rgba(0,0,0,.75), inset 0 1px 0 rgba(255,255,255,.18); display: flex; align-items: center; gap: 16px; }
+  .callout .dot { width: 24px; height: 24px; border-radius: 50%; flex: none; box-shadow: 0 0 18px currentColor; }
+  .callout small { font-family: 'Mono'; font-size: 26px; letter-spacing: 3px; color: var(--tenue); display: block; font-weight: 700; margin-bottom: 4px; }
+  .pill { position: absolute; left: 0; right: 0; margin: 0 auto; width: fit-content; padding: 16px 32px; border-radius: 999px; font-family: 'Mono'; font-weight: 700;
+    font-size: 36px; letter-spacing: 2px; white-space: nowrap; background: rgba(16,15,22,.82); border: 2px solid var(--tenue2); box-shadow: 0 14px 30px -10px rgba(0,0,0,.6); }
+  .chip { position: absolute; left: 0; right: 0; margin: 0 auto; width: fit-content; padding: 18px 36px; border-radius: 26px; font-family: 'Bricolage'; font-weight: 700;
+    font-size: 66px; letter-spacing: -1px; white-space: nowrap; display: flex; align-items: center; gap: 18px; box-shadow: 0 24px 50px -16px rgba(0,0,0,.8); }
+  .card { position: absolute; padding: 26px 30px; border-radius: 30px; background: rgba(14,13,20,.8); backdrop-filter: blur(12px); border: 2px solid rgba(255,255,255,.13);
+    box-shadow: 0 30px 60px -20px rgba(0,0,0,.85), inset 0 1px 0 rgba(255,255,255,.15); }
+  .fila { display: flex; align-items: center; gap: 24px; font-size: 48px; font-weight: 700; margin: 10px 0; line-height: 1.05; }
+  .fila small { display: block; font-size: 30px; color: var(--tenue); font-weight: 500; }
+  .chk { width: 64px; height: 64px; flex: none; border-radius: 50%; background: var(--ok); display: flex; align-items: center; justify-content: center; box-shadow: 0 0 24px rgba(91,228,155,.45); }
+  .btxt { font-family: 'Mono'; font-weight: 700; font-size: 30px; fill: #CFCAD6; letter-spacing: 1px; }
+  .lbl { font-family: 'Mono'; font-weight: 700; font-size: 34px; letter-spacing: 4px; fill: rgba(243,238,230,.55); }
+</style></head>
+<body><div id="lienzo">
+
+  <!-- ============ ESCENA A · dentro del coche, mirando el parabrisas (noche de lluvia) ============ -->
+  <div id="escA" class="escena"><svg id="svgA" viewBox="0 0 1080 1920"><defs>
+      <path id="vidrioD" d="M80 392 Q540 336 1000 392 Q1040 790 1062 1186 Q540 1150 18 1186 Q40 790 80 392 Z"/>
+      <clipPath id="clipVidrio"><use href="#vidrioD"/></clipPath>
+      <linearGradient id="g-noche" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#070B19"/><stop offset=".55" stop-color="#1A1433"/><stop offset=".72" stop-color="#3A2140"/><stop offset="1" stop-color="#0B0A12"/></linearGradient>
+      <linearGradient id="g-calle" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#16121E"/><stop offset="1" stop-color="#07060A"/></linearGradient>
+      <radialGradient id="g-gota" cx=".38" cy=".32" r=".7"><stop offset="0" stop-color="#FFFFFF" stop-opacity=".75"/><stop offset=".25" stop-color="#C9DAF2" stop-opacity=".22"/><stop offset=".8" stop-color="#0B1020" stop-opacity=".35"/><stop offset="1" stop-color="#E6EEFF" stop-opacity=".55"/></radialGradient>
+      <linearGradient id="g-reflejo" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#fff" stop-opacity="0"/><stop offset=".45" stop-color="#fff" stop-opacity=".07"/><stop offset=".5" stop-color="#fff" stop-opacity=".12"/><stop offset=".56" stop-color="#fff" stop-opacity=".05"/><stop offset="1" stop-color="#fff" stop-opacity="0"/></linearGradient>
+      <linearGradient id="g-salpi" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#2A2731"/><stop offset=".12" stop-color="#1A1820"/><stop offset="1" stop-color="#0C0B10"/></linearGradient>
+      <linearGradient id="g-techo" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#0E0D12"/><stop offset="1" stop-color="#23202A"/></linearGradient>
+      <linearGradient id="g-temp" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#4FB3FF"/><stop offset=".5" stop-color="#C9C3D6"/><stop offset="1" stop-color="#FF5A3C"/></linearGradient>
+      <filter id="f-bokeh" x="-60%" y="-60%" width="220%" height="220%"><feGaussianBlur stdDeviation="9"/></filter>
+      <filter id="f-bokeh2" x="-60%" y="-60%" width="220%" height="220%"><feGaussianBlur stdDeviation="22"/></filter>
+      <filter id="f-borde" x="-20%" y="-20%" width="140%" height="140%"><feGaussianBlur stdDeviation="34"/></filter>
+      <filter id="f-vaho" x="0" y="0" width="100%" height="100%">
+        <feTurbulence type="fractalNoise" baseFrequency="0.006 0.009" numOctaves="3" seed="7" result="n"/>
+        <feColorMatrix in="n" type="matrix" values="0 0 0 0 .86  0 0 0 0 .9  0 0 0 0 .95  0 0 0 1.5 -.25" result="nube"/>
+        <feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="1" seed="3" result="g"/>
+        <feColorMatrix in="g" type="matrix" values="0 0 0 0 1  0 0 0 0 1  0 0 0 0 1  0 0 0 1.2 -.35" result="pt"/>
+        <feMerge result="m"><feMergeNode in="SourceGraphic"/><feMergeNode in="nube"/><feMergeNode in="pt"/></feMerge>
+        <feComposite in="m" in2="SourceAlpha" operator="in"/>
+      </filter>
+      <mask id="mVaho" maskUnits="userSpaceOnUse" x="-300" y="0" width="1700" height="1700">
+        <rect x="-300" y="0" width="1700" height="1700" fill="#fff"/>
+        <ellipse id="centroLimpio" cx="540" cy="760" rx="420" ry="300" fill="#000" filter="url(#f-borde)"/>
+        <path id="despejado" fill="#000" filter="url(#f-borde)" d=""/>
+      </mask>
+    </defs>
+    <g id="camA">
+      <!-- ciudad de noche detrás del cristal -->
+      <g clip-path="url(#clipVidrio)">
+        <g id="ciudad">
+          <rect x="-200" y="250" width="1500" height="1050" fill="url(#g-noche)"/>
+          <g id="edificios"></g>
+          <rect x="-200" y="1010" width="1500" height="300" fill="url(#g-calle)"/>
+          <g id="reflejosCalle"></g>
+          <g id="bokehCiudad"></g>
+          <g id="lluviaA"></g>
+        </g>
+        <g id="ciudadBorrosa" mask="url(#mVaho)"><use href="#ciudad" id="usoBorroso"/></g>
+        <!-- gotas por fuera del cristal -->
+        <g id="gotasA"></g>
+        <!-- el vaho (por dentro): microgotas que dispersan la luz -->
+        <g mask="url(#mVaho)"><rect id="vaho" x="-100" y="300" width="1300" height="950" fill="#D3DCE6" filter="url(#f-vaho)"/></g>
+        <!-- aire seco del climatizador que sube por el cristal -->
+        <g id="aireA"></g><g id="flechasA"></g>
+        <rect x="-100" y="300" width="1300" height="950" fill="url(#g-reflejo)"/>
+      </g>
+      <!-- marco interior: techo, pilares -->
+      <path fill="url(#g-techo)" fill-rule="evenodd" filter="url(#m-tela)" d="M-700 -700 L1780 -700 L1780 2700 L-700 2700 Z M80 392 Q540 336 1000 392 Q1040 790 1062 1186 Q540 1150 18 1186 Q40 790 80 392 Z"/>
+      <use href="#vidrioD" fill="none" stroke="#2E2B35" stroke-width="16"/>
+      <use href="#vidrioD" fill="none" stroke="#000" stroke-opacity=".5" stroke-width="4"/>
+      <!-- retrovisor -->
+      <g filter="url(#f-sombra-s)"><rect x="526" y="330" width="28" height="80" rx="10" fill="#1E1C23"/>
+        <rect x="396" y="398" width="288" height="92" rx="34" fill="#1F1D24" filter="url(#m-plastico)"/>
+        <rect x="410" y="410" width="260" height="68" rx="26" fill="#3B4252"/><rect x="410" y="410" width="260" height="68" rx="26" fill="url(#g-reflejo)"/></g>
+      <!-- salpicadero -->
+      <g id="salpicadero">
+        <path d="M-700 1176 Q540 1128 1780 1176 L1780 2700 L-700 2700 Z" fill="#1C1A21" filter="url(#m-plastico)"/>
+        <path d="M-700 1176 Q540 1128 1780 1176" fill="none" stroke="#3A3642" stroke-width="5"/>
+        <rect x="228" y="1166" width="624" height="26" rx="13" fill="#060508"/>
+        <g id="rejilla"></g>
+        <path d="M-700 1420 Q540 1380 1780 1420" fill="none" stroke="#2C2932" stroke-width="4" stroke-dasharray="14 10"/>
+        <path d="M-700 1428 Q540 1388 1780 1428" fill="none" stroke="#000" stroke-opacity=".35" stroke-width="3"/>
+        <g transform="translate(0 380)">
+        <g filter="url(#f-sombra)"><rect x="196" y="1236" width="688" height="262" rx="40" fill="#24222A" filter="url(#m-plastico)"/></g>
+        <rect x="212" y="1252" width="656" height="230" rx="30" fill="none" stroke="#3B3843" stroke-width="3"/>
+        <!-- pantalla -->
+        <rect x="412" y="1268" width="256" height="76" rx="14" fill="#0B0E14"/>
+        <g id="lcdFlujo" opacity=".85"><path d="M450 1322 L450 1294 M470 1322 L470 1288 M490 1322 L490 1282" stroke="#5FD0FF" stroke-width="7" stroke-linecap="round"/>
+          <text x="600" y="1320" text-anchor="middle" class="btxt" style="fill:#5FD0FF;font-size:34px">AUTO</text></g>
+        <!-- mando de temperatura -->
+        <g transform="translate(300 1372)"><circle r="74" fill="none" stroke="url(#g-temp)" stroke-width="12" stroke-dasharray="320 145" transform="rotate(130)"/>
+          <circle r="58" fill="#2E2B34" filter="url(#m-plastico)"/><circle r="44" fill="#26232C"/>
+          <g id="pomoTemp"><rect x="-5" y="-54" width="10" height="30" rx="5" fill="#F3EEE6"/></g></g>
+        <!-- mando del ventilador -->
+        <g transform="translate(780 1372)"><circle r="58" fill="#2E2B34" filter="url(#m-plastico)"/><circle r="44" fill="#26232C"/>
+          <g id="pomoVent"><rect x="-5" y="-54" width="10" height="30" rx="5" fill="#F3EEE6"/></g>
+          <path d="M-14 -4 Q0 -22 14 -4 Q0 14 -14 -4 Z" fill="#8C8896" transform="translate(0 6) scale(1.1)"/></g>
+        <!-- botones: A/C · desempañar · recirculación -->
+        <g id="btnAC" transform="translate(440 1410)"><rect x="-44" y="-36" width="88" height="72" rx="16" fill="#302D37" filter="url(#m-plastico)"/>
+          <text y="12" text-anchor="middle" class="btxt">A/C</text><rect id="ledAC" x="-16" y="-30" width="32" height="7" rx="3.5" fill="#3A3742"/></g>
+        <g id="btnDef" transform="translate(540 1410)"><rect x="-44" y="-36" width="88" height="72" rx="16" fill="#302D37" filter="url(#m-plastico)"/>
+          <path d="M-24 14 Q0 2 24 14 L18 -4 Q0 -12 -18 -4 Z" fill="none" stroke="#CFCAD6" stroke-width="4" stroke-linejoin="round"/>
+          <path d="M-8 -6 q4 -6 0 -12 M0 -8 q4 -6 0 -12 M8 -6 q4 -6 0 -12" fill="none" stroke="#CFCAD6" stroke-width="3" stroke-linecap="round" transform="translate(0 -2)"/>
+          <rect id="ledDef" x="-16" y="-30" width="32" height="7" rx="3.5" fill="#3A3742"/></g>
+        <g id="btnRec" transform="translate(640 1410)"><rect x="-44" y="-36" width="88" height="72" rx="16" fill="#302D37" filter="url(#m-plastico)"/>
+          <path d="M-24 14 L-20 2 Q-18 -2 -12 -2 L12 -2 Q18 -2 20 2 L24 14 Z" fill="none" stroke="#CFCAD6" stroke-width="4" stroke-linejoin="round"/>
+          <path d="M-10 -8 A11 9 0 1 1 10 -8" fill="none" stroke="#CFCAD6" stroke-width="3.5" stroke-linecap="round" transform="translate(0 -4)"/>
+          <path d="M6 -14 L11 -11 L13 -17" fill="none" stroke="#CFCAD6" stroke-width="3" stroke-linecap="round"/>
+          <rect id="ledRec" x="-16" y="-30" width="32" height="7" rx="3.5" fill="#FF9A3C"/>
+          <g id="tachaRec" opacity="0"><path d="M-30 22 L30 -26" stroke="#FF5A5F" stroke-width="7" stroke-linecap="round"/></g></g>
+        <g id="ondasPanel"></g>
+        </g>
+      </g>
+      <!-- volante (primer término, abajo a la izquierda) -->
+      <g filter="url(#f-sombra)"><circle cx="-130" cy="1920" r="340" fill="none" stroke="#141217" stroke-width="70"/>
+        <circle cx="-130" cy="1920" r="340" fill="none" stroke="#2A2730" stroke-width="66" filter="url(#m-tela)"/>
+        <path d="M-320 1650 A340 340 0 0 1 130 1680" fill="none" stroke="#4A4552" stroke-width="6" opacity=".6"/></g>
+    </g></svg></div>
+
+  <!-- ============ ESCENA B · el coche en sección: tu aliento, la ropa mojada y el cristal frío ============ -->
+  <div id="escB" class="escena"><svg id="svgB" viewBox="0 0 1080 1920"><defs>
+      <linearGradient id="g-cieloB" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#060A18"/><stop offset=".6" stop-color="#1B1535"/><stop offset="1" stop-color="#2E1B36"/></linearGradient>
+      <linearGradient id="g-dentroB" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#1F1A22"/><stop offset="1" stop-color="#2A2230"/></linearGradient>
+      <linearGradient id="g-pelo" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#3A2A22"/><stop offset="1" stop-color="#16100D"/></linearGradient>
+      <linearGradient id="g-piel" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#A66E52"/><stop offset=".7" stop-color="#D99C78"/><stop offset="1" stop-color="#E8B08E"/></linearGradient>
+      <linearGradient id="g-chaqueta" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#2F4A6E"/><stop offset="1" stop-color="#17263D"/></linearGradient>
+      <linearGradient id="g-capo" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#8E2630"/><stop offset=".5" stop-color="#5A141C"/><stop offset="1" stop-color="#2C0A0E"/></linearGradient>
+      <linearGradient id="g-vidrioB" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#BFE3FF" stop-opacity=".55"/><stop offset=".5" stop-color="#7FB8E6" stop-opacity=".25"/><stop offset="1" stop-color="#DFF2FF" stop-opacity=".6"/></linearGradient>
+      <clipPath id="clipFuera"><path d="M640 380 L600 -800 L2600 -800 L2600 2600 L1028 2600 L1028 1168 Z"/></clipPath>
+    </defs>
+    <g id="camB">
+      <g id="contB">
+        <g id="fondoB"><rect x="-800" y="-900" width="3600" height="3600" fill="url(#g-cieloB)"/><g id="bokehB"></g></g>
+        <g clip-path="url(#clipFuera)"><g id="lluviaB"></g></g>
+        <!-- capó -->
+        <path d="M1026 1168 Q1300 1190 1800 1250 L1800 1600 L1010 1600 Z" fill="url(#g-capo)" filter="url(#m-metal)"/>
+        <path d="M1030 1172 Q1300 1194 1800 1254" fill="none" stroke="#FFB0B0" stroke-width="4" opacity=".5"/>
+        <!-- interior del coche -->
+        <path d="M-900 360 L640 380 L1003 1180 L1003 2700 L-900 2700 Z" fill="url(#g-dentroB)"/>
+        <rect x="-900" y="300" width="1900" height="2400" fill="url(#g-luz)" opacity=".5" clip-path="url(#clipDentroB)"/>
+        <!-- techo -->
+        <path d="M-900 250 L660 250 L668 372 L640 380 L-900 372 Z" fill="#141217" filter="url(#m-tela)"/>
+        <path d="M-900 372 L640 380" stroke="#3A3540" stroke-width="5"/>
+        <!-- asiento -->
+        <g filter="url(#f-sombra)"><rect x="40" y="590" width="120" height="200" rx="46" fill="#2B2730" filter="url(#m-tela)"/>
+          <rect x="84" y="780" width="18" height="70" fill="#5A5560"/>
+          <path d="M30 850 Q90 830 160 850 L230 1500 Q120 1530 10 1500 Z" fill="#26222B" filter="url(#m-tela)"/></g>
+        <!-- cabeza de perfil (mirando al cristal) -->
+        <g id="cabeza" filter="url(#f-sombra)">
+          <path d="M395 978 C392 1010 392 1040 398 1080 L250 1080 C246 1030 232 990 212 955 Z" fill="#B97B5C" filter="url(#m-organico)"/>
+          <path id="cara" d="M250 560 C330 520 430 540 460 620 C470 650 472 690 468 720 C466 735 470 745 478 754 C490 772 502 792 514 812 C517 822 503 829 490 830 C487 840 495 847 493 857 C489 864 483 868 485 876 C491 885 489 897 479 903 C472 918 477 935 470 950 C462 972 430 980 405 978 C380 975 300 960 230 950 C185 900 160 820 170 740 C180 640 205 585 250 560 Z" fill="url(#g-piel)" filter="url(#m-organico)"/>
+          <path d="M250 560 C330 520 430 540 460 620 C462 640 455 650 440 646 C400 610 330 610 300 650 C280 690 270 740 262 800 C240 820 205 830 178 800 C165 700 190 600 250 560 Z" fill="url(#g-pelo)" filter="url(#m-tela)"/>
+          <ellipse cx="292" cy="792" rx="30" ry="44" fill="#C98767" filter="url(#m-organico)"/><path d="M286 770 Q300 790 288 812" fill="none" stroke="#8A5440" stroke-width="5" stroke-linecap="round"/>
+          <path d="M426 716 Q440 708 456 716" fill="none" stroke="#2A1A14" stroke-width="7" stroke-linecap="round"/>
+          <path d="M424 694 Q442 682 462 690" fill="none" stroke="#3A2A22" stroke-width="8" stroke-linecap="round"/>
+          <path d="M476 880 L492 878" stroke="#8A4A3A" stroke-width="4" stroke-linecap="round"/>
+        </g>
+        <!-- chaqueta mojada -->
+        <g id="chaqueta" filter="url(#f-sombra)">
+          <path d="M200 1050 Q300 1030 410 1050 Q470 1060 520 1120 L560 1500 L120 1500 Q130 1200 200 1050 Z" fill="url(#g-chaqueta)" filter="url(#m-tela)"/>
+          <path d="M392 1048 Q420 1100 412 1180" fill="none" stroke="#0F1A2B" stroke-width="10" stroke-linecap="round"/>
+          <g id="manchasRopa"></g><g id="gotasRopa"></g>
+        </g>
+        <!-- volante en sección -->
+        <g transform="rotate(-16 610 1200)"><rect x="586" y="1010" width="48" height="380" rx="24" fill="#1A1820" filter="url(#m-tela)"/></g>
+        <!-- salpicadero -->
+        <path d="M1003 1180 L760 1196 Q680 1200 650 1250 L620 1600 L1003 1600 Z" fill="#1E1C23" filter="url(#m-plastico)"/>
+        <path d="M1003 1180 L760 1196 Q680 1200 650 1250" fill="none" stroke="#3E3A46" stroke-width="5"/>
+        <rect x="930" y="1182" width="52" height="12" rx="5" fill="#060508"/>
+        <!-- parabrisas en sección (con grosor) -->
+        <path id="vidrioB" d="M640 380 L668 368 L1030 1168 L1003 1180 Z" fill="url(#g-vidrioB)" filter="url(#m-cristal)"/>
+        <path id="frioB" d="M640 380 L668 368 L1030 1168 L1003 1180 Z" fill="#4FB3FF" opacity="0" filter="url(#f-brillo)"/>
+        <path d="M668 368 L1030 1168" stroke="#E9F6FF" stroke-width="3" opacity=".7"/>
+        <g id="gotasFuera"></g>
+        <g id="microB"></g>
+        <!-- aliento y humedad -->
+        <g id="alientoB"></g><g id="vaporB"></g><g id="ropaVapor"></g>
+        <g id="flechasB"></g><g id="ondaB"></g>
+      </g>
+      <g id="lupaCapa"></g>
+    </g></svg></div>
+
+  <!-- ============ ESCENA C · una microgota de cerca: desvía la luz ============ -->
+  <div id="escC" class="escena"><svg id="svgC" viewBox="0 0 1080 1920"><defs>
+      <linearGradient id="g-gotaC" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#9FD4FF" stop-opacity=".45"/><stop offset=".7" stop-color="#3E9BF0" stop-opacity=".6"/><stop offset="1" stop-color="#DFF2FF" stop-opacity=".9"/></linearGradient>
+      <linearGradient id="g-vidrioC" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#E6F4FF" stop-opacity=".55"/><stop offset=".5" stop-color="#8EC2EA" stop-opacity=".3"/><stop offset="1" stop-color="#E6F4FF" stop-opacity=".6"/></linearGradient>
+      <radialGradient id="g-fondoC" cx=".5" cy=".4" r=".7"><stop offset="0" stop-color="#1D2440"/><stop offset="1" stop-color="#07070C"/></radialGradient>
+    </defs>
+    <g id="camC">
+      <rect x="-1200" y="-1200" width="3500" height="4300" fill="url(#g-fondoC)"/>
+      <g id="bokehC"></g>
+      <rect x="-1200" y="600" width="3500" height="120" fill="url(#g-vidrioC)" filter="url(#m-cristal)"/>
+      <path d="M-1200 600 L2300 600" stroke="#F2FAFF" stroke-width="4" opacity=".8"/>
+      <text x="80" y="560" class="lbl">FUERA</text><text x="80" y="790" class="lbl">DENTRO</text>
+      <g id="rayosRectos"></g>
+      <g id="gotitasC"></g>
+      <path id="gotaC" d="M230 720 C 250 1090, 830 1090, 850 720 Z" fill="url(#g-gotaC)" filter="url(#m-cristal)" stroke="#CFEBFF" stroke-width="5" stroke-opacity=".8"/>
+      <path d="M300 760 C 330 930, 470 990, 560 996" fill="none" stroke="#fff" stroke-width="10" stroke-linecap="round" opacity=".35"/>
+      <ellipse cx="420" cy="800" rx="60" ry="22" fill="#fff" opacity=".35" transform="rotate(20 420 800)"/>
+      <g id="rayosC"></g>
+    </g></svg></div>
+
+  <!-- ============ capa fija de pantalla ============ -->
+  <div id="titular" class="titular" style="top:150px;text-shadow:0 10px 40px rgba(0,0,0,.7)">¿Por qué se <em>empaña</em> el cristal?</div>
+  <div id="cVapor" class="callout" style="left:300px;top:620px"><span class="dot" style="background:#9FD4FF;color:#9FD4FF"></span><div><small>CON TU ALIENTO</small>VAPOR DE AGUA</div></div>
+  <div id="cRopa" class="callout" style="left:520px;top:1120px"><span class="dot" style="background:#4FB3FF;color:#4FB3FF"></span><div><small>MÁS HUMEDAD</small>ROPA MOJADA</div></div>
+  <div id="cHumedo" class="callout" style="left:80px;top:400px"><span class="dot" style="background:#9FD4FF;color:#9FD4FF"></span><div><small>DENTRO DEL COCHE</small>AIRE HÚMEDO</div></div>
+  <div id="cFrio" class="callout" style="left:470px;top:1190px"><span class="dot" style="background:#4FB3FF;color:#4FB3FF"></span><div><small>POR LA LLUVIA</small>CRISTAL FRÍO</div></div>
+  <div id="termo" class="card" style="left:56px;top:230px;width:470px;padding:22px 24px">
+    <div style="font-family:Mono;font-weight:700;font-size:26px;letter-spacing:3px;color:var(--tenue)">AIRE JUNTO AL CRISTAL</div>
+    <svg id="termoSvg" width="420" height="420" viewBox="0 0 420 420" style="display:block;margin-top:8px">
+      <rect x="46" y="14" width="64" height="330" rx="32" fill="#1B1A22" stroke="#D8D2DE" stroke-width="5"/>
+      <rect id="merc" x="62" y="60" width="32" height="300" rx="16" fill="#FF8A5B"/>
+      <circle id="bulbo" cx="78" cy="370" r="44" fill="#FF8A5B" stroke="#D8D2DE" stroke-width="5"/>
+      <path d="M60 40 L60 330" stroke="#fff" stroke-width="5" opacity=".25" stroke-linecap="round"/>
+      <line id="lRocio" x1="24" y1="214" x2="408" y2="214" stroke="#FF8A5B" stroke-width="5" stroke-dasharray="16 11"/>
+      <text x="140" y="190" style="font-family:Mono;font-weight:700;font-size:26px;letter-spacing:3px;fill:rgba(243,238,230,.6)">PUNTO DE</text>
+      <text x="138" y="262" style="font-family:Bricolage;font-weight:700;font-size:60px;letter-spacing:-1px;fill:#FF8A5B">ROCÍO</text>
+      <g id="condensa" opacity="0"><text x="132" y="330" style="font-family:Bricolage;font-weight:700;font-size:40px;fill:#9FD4FF">¡Se condensa!</text></g>
+      <g id="ondaTermo"></g>
+    </svg></div>
+  <div id="cMicro" class="callout" style="left:540px;top:330px"><span class="dot" style="background:#CFEBFF;color:#CFEBFF"></span><div><small>EL VAPOR SE VUELVE</small>MICROGOTAS</div></div>
+  <div id="cLuz" class="pill" style="top:200px;border-color:#FFE6A8;color:#FFE6A8;background:rgba(40,32,14,.75)">CADA GOTA DESVÍA LA LUZ</div>
+  <div id="eBlanco" class="pill" style="top:200px">MICROGOTAS → <span style="color:var(--acento)">BLANCO</span></div>
+  <div id="chip1" class="chip" style="top:250px;background:rgba(16,15,22,.8);border:2px solid var(--tenue2);color:rgba(243,238,230,.7)">🔥 No solo calentar</div>
+  <div id="chip2" class="chip" style="top:390px;background:var(--acento);color:#1A0E08">Secar el aire</div>
+  <div id="cAC" class="callout" style="left:110px;top:560px"><span class="dot" style="background:var(--ok);color:var(--ok)"></span><div><small>EL AIRE ACONDICIONADO</small>QUITA LA HUMEDAD</div></div>
+  <div id="cCalor" class="callout" style="left:120px;top:250px"><span class="dot" style="background:#FF7A45;color:#FF7A45"></span><div><small>CALEFACCIÓN</small>AL PARABRISAS</div></div>
+  <div id="cRec" class="callout" style="left:150px;top:560px"><span class="dot" style="background:var(--peligro);color:var(--peligro)"></span><div><small>AIRE DE FUERA</small>SIN RECIRCULAR</div></div>
+  <div id="final" class="card" style="left:70px;right:70px;top:150px">
+    <div class="fila" id="f1"><div class="chk"><svg width="40" height="40" viewBox="-20 -20 40 40"><path d="M-12 1 L-3 10 L13 -9" fill="none" stroke="#0E0D11" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/></svg></div><div>Aire acondicionado<small>seca el aire</small></div></div>
+    <div class="fila" id="f2"><div class="chk"><svg width="40" height="40" viewBox="-20 -20 40 40"><path d="M-12 1 L-3 10 L13 -9" fill="none" stroke="#0E0D11" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/></svg></div><div>Calor al parabrisas</div></div>
+    <div class="fila" id="f3"><div class="chk"><svg width="40" height="40" viewBox="-20 -20 40 40"><path d="M-12 1 L-3 10 L13 -9" fill="none" stroke="#0E0D11" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/></svg></div><div>Sin recircular<small>aire de fuera</small></div></div>
+  </div>
+  <div id="subs"></div>
+  <div id="barra" class="progreso"></div>
+</div>
+<script>
+X.listo(() => {
+  const $ = (id) => document.getElementById(id), NS = 'http://www.w3.org/2000/svg';
+  const mk = (tag, at, padre) => { const e = document.createElementNS(NS, tag); Object.entries(at).forEach(([k, v]) => e.setAttribute(k, v)); if (padre) padre.appendChild(e); return e; };
+  X.defs($('svgA')); X.materiales($('svgA'));
+  mk('clipPath', { id: 'clipDentroB' }, $('svgB').querySelector('defs')).innerHTML = '<path d="M-900 360 L640 380 L1003 1180 L1003 2700 L-900 2700 Z"/>';
+
+  // ---------- anclas ----------
+  const A = {
+    nada: X.debe(X.en('nada'), 'nada'), empana: X.debe(X.en('empaña'), 'empaña'), coche: X.debe(X.en('coche'), 'coche'),
+    empieza: X.debe(X.en('Empieza'), 'Empieza'), respiras: X.debe(X.en('respiras'), 'respiras'), vapor: X.debe(X.en('vapor'), 'vapor'),
+    ropa: X.debe(X.en('ropa'), 'ropa'), suelta: X.debe(X.en('suelta más'), 'suelta más'), humedo: X.debe(X.en('húmedo'), 'húmedo'),
+    toca: X.debe(X.en('toca'), 'toca'), frio: X.debe(X.en('frío por'), 'frío por'), enfria: X.debe(X.en('enfría'), 'enfría'),
+    debajo: X.debe(X.en('debajo'), 'debajo'), rocio: X.debe(X.en('rocío'), 'rocío'), convierte: X.debe(X.en('convierte'), 'convierte'),
+    micro: X.debe(X.en('microgotas'), 'microgotas'), cada: X.debe(X.en('Cada gota'), 'Cada gota'), desvia: X.debe(X.en('desvía'), 'desvía'),
+    poreso: X.debe(X.en('Por eso'), 'Por eso'), blanco: X.debe(X.en('blanco'), 'blanco'), truco: X.debe(X.en('truco'), 'truco'),
+    calentar: X.debe(X.en('calentar'), 'calentar'), secar: X.debe(X.en('secar'), 'secar'), enciende: X.debe(X.en('Enciende'), 'Enciende'),
+    acond: X.debe(X.en('acondicionado'), 'acondicionado'), humedad: X.debe(X.en('humedad'), 'humedad'), sumale: X.debe(X.en('Súmale'), 'Súmale'),
+    calef: X.debe(X.en('calefacción'), 'calefacción'), parabrisas: X.debe(X.en('parabrisas'), 'parabrisas'),
+    recirc: X.debe(X.en('recirculación'), 'recirculación'), segundos: X.debe(X.en('segundos'), 'segundos'), lluvia: X.debe(X.en('ver la lluvia'), 'ver la lluvia'),
+  };
+  // cortes entre escenas (zoom a través)
+  const T1 = A.empieza - 0.12, T2 = A.cada - 0.2, T3 = A.poreso - 0.25;
+
+  // ---------- cámaras ----------
+  const camA = [
+    { t: 0, x: 540, y: 800, z: 1.07, r: -0.8, rx: 5, ry: -6 },
+    { t: A.nada, x: 540, y: 790, z: 1.2, r: 0.5, rx: 2, ry: 5, dur: 1.6 },
+    { t: A.coche + 0.15, x: 600, y: 760, z: 2.3, r: 0, rx: 0, ry: 0, dur: 0.7 },
+    { t: T3 - 0.4, x: 540, y: 860, z: 1.6, r: 0, rx: 6, ry: -4, dur: 0.25 },
+    { t: T3 + 0.25, x: 540, y: 820, z: 1.06, r: 0.4, rx: 3, ry: 3, dur: 0.9 },
+    { t: A.truco, x: 540, y: 880, z: 1.0, r: -0.4, rx: 0, ry: 7 },
+    { t: A.enciende, x: 470, y: 1740, z: 1.7, r: 0.6, rx: 8, ry: -6, dur: 1.0 },
+    { t: A.sumale, x: 340, y: 1760, z: 1.6, r: 0, rx: -3, ry: 6, dur: 0.9 },
+    { t: A.parabrisas - 0.3, x: 540, y: 880, z: 1.05, r: 0.3, rx: -3, ry: 4, dur: 1.0 },
+    { t: A.recirc - 0.25, x: 630, y: 1760, z: 1.7, r: -0.6, rx: 8, ry: 6, dur: 0.9 },
+    { t: A.segundos, x: 540, y: 800, z: 1.07, r: -0.8, rx: 5, ry: -6, dur: 1.3 },
+  ];
+  const camB = [
+    { t: 0, x: 500, y: 830, z: 2.1, r: 0 },
+    { t: T1 + 0.05, x: 420, y: 820, z: 1.25, r: 0.4, rx: 4, ry: 8, dur: 1.0 },
+    { t: A.respiras + 0.2, x: 600, y: 830, z: 1.45, r: 0.6, rx: 0, ry: -6 },
+    { t: A.ropa, x: 400, y: 1080, z: 1.2, r: -0.4, rx: -6, ry: 6 },
+    { t: A.toca - 0.2, x: 760, y: 800, z: 1.5, r: 0.5, rx: 4, ry: -10 },
+    { t: A.frio, x: 880, y: 830, z: 1.3, r: -0.5, rx: 4, ry: 10 },
+    { t: A.enfria, x: 600, y: 760, z: 1.0, r: 0, rx: 0, ry: 0, dur: 1.2 },
+    { t: A.convierte - 0.1, x: 760, y: 860, z: 1.35, r: 0.4, rx: 6, ry: -8 },
+    { t: T2 - 0.1, x: 830, y: 795, z: 3.2, r: 0, rx: 0, ry: 0, dur: 0.6 },
+  ];
+  const camC = [
+    { t: 0, x: 540, y: 860, z: 2.4 },
+    { t: T2 + 0.05, x: 540, y: 880, z: 1.05, r: 0.4, rx: 6, ry: 6, dur: 0.9 },
+    { t: A.desvia + 0.3, x: 540, y: 930, z: 0.98, r: -0.5, rx: -4, ry: -8, dur: 1.2 },
+    { t: T3 - 0.1, x: 540, y: 900, z: 0.6, dur: 0.6 },
+  ];
+  const vis = (t, a, b, f = 0.32) => X.limita(Math.min((t - a) / f + 0.5, (b - t) / f + 0.5));
+  const escena = (el, t, a, b) => { const v = vis(t, a, b); el.style.opacity = v.toFixed(3); el.style.display = v <= 0.001 ? 'none' : '';
+    const bl = (1 - v) * 22; el.style.filter = bl > 0.3 ? `blur(${bl.toFixed(1)}px)` : ''; return v > 0.001; };
+
+  // ---------- sonidos ----------
+  [camA[1], camA[5], camA[6], camA[7], camA[8], camA[9], camA[10]].forEach((c) => X.sonido(c.t - (c.dur ?? 1.1) * 0.7, 'whoosh', 0.55));
+  camB.slice(2, 8).forEach((c) => X.sonido(c.t - (c.dur ?? 1.1) * 0.7, 'whoosh', 0.5));
+  [T1, T2, T3].forEach((t) => X.sonido(t - 0.25, 'swoosh', 0.8));
+  [A.empana, A.vapor, A.ropa, A.humedo, A.frio, A.micro, A.desvia, A.blanco, A.calentar, A.humedad, A.parabrisas].forEach((t) => X.sonido(t, 'pop', 0.5));
+  X.sonido(A.secar, 'notificacion', 0.5); X.sonido(A.debajo + 0.1, 'notificacion', 0.45);
+  X.sonido(A.acond - 0.05, 'click', 0.8); X.sonido(A.calef, 'click', 0.7); X.sonido(A.recirc - 0.05, 'click', 0.8); X.sonido(A.segundos + 0.2, 'feedback', 0.45);
+
+  // ---------- ESCENA A: ciudad, lluvia, gotas ----------
+  const az = X.azar(12);
+  for (let i = 0, x = -120; x < 1240; i++) { const w = 70 + az() * 130, h = 140 + az() * 360, y = 1010 - h;
+    mk('rect', { x, y, width: w, height: h + 10, fill: i % 2 ? '#0C0E18' : '#101322' }, $('edificios'));
+    for (let wy = y + 20; wy < 990; wy += 34) for (let wx = x + 12; wx < x + w - 16; wx += 26) if (az() < 0.32) mk('rect', { x: wx, y: wy, width: 12, height: 16, fill: az() < 0.7 ? '#FFC77A' : '#9FD4FF', opacity: (0.25 + az() * 0.5).toFixed(2) }, $('edificios'));
+    x += w + 6; }
+  const bok = [];
+  const luz = (x, y, r, c, o, g = $('bokehCiudad'), f = 'f-bokeh') => { const e = mk('circle', { cx: x, cy: y, r, fill: c, opacity: o, filter: `url(#${f})` }, g); bok.push({ e, o, s: az() * 9 }); return e; };
+  [[130, 720, '#FFB25C'], [360, 660, '#FFB25C'], [600, 690, '#FFC27A'], [850, 640, '#FFB25C'], [1000, 720, '#FFD39A']].forEach(([x, y, c]) => { luz(x, y, 34 + az() * 20, c, 0.85); luz(x, y, 90, c, 0.22, undefined, 'f-bokeh2'); });
+  [[300, 1050], [380, 1050], [700, 1070], [790, 1070]].forEach(([x, y]) => { luz(x, y, 26, '#FF3B4A', 0.9); luz(x, y, 60, '#FF3B4A', 0.25, undefined, 'f-bokeh2'); });
+  luz(520, 880, 22, '#42E38B', 0.9); luz(520, 880, 70, '#42E38B', 0.25, undefined, 'f-bokeh2');
+  [[200, 1110], [930, 1120]].forEach(([x, y]) => { luz(x, y, 40, '#E8F0FF', 0.8); luz(x, y, 120, '#E8F0FF', 0.2, undefined, 'f-bokeh2'); });
+  [[130, '#FFB25C'], [300, '#FF3B4A'], [600, '#FFC27A'], [790, '#FF3B4A'], [930, '#E8F0FF']].forEach(([x, c]) => mk('rect', { x: x - 14, y: 1090, width: 28, height: 200, fill: c, opacity: 0.22, filter: 'url(#f-bokeh)' }, $('reflejosCalle')));
+  const lluvia = (g, n, sem, zona, col = '#B9CCEE') => { const r = X.azar(sem); return Array.from({ length: n }, () => ({ e: mk('line', { stroke: col, 'stroke-width': 2 + r() * 2, 'stroke-linecap': 'round', opacity: (0.2 + r() * 0.35).toFixed(2) }, g), x: zona[0] + r() * (zona[2] - zona[0]), y: r(), v: 0.9 + r() * 0.6, l: 40 + r() * 60 })); };
+  const lluA = lluvia($('lluviaA'), 70, 5, [-100, 300, 1200, 1250]);
+  const lluB = lluvia($('lluviaB'), 90, 8, [500, -400, 2000, 1500]);
+  const pintaLluvia = (ls, t, y0, y1, inc = 0.18) => ls.forEach((p) => { const H = y1 - y0, y = y0 + ((p.y * H + t * 1500 * p.v) % H), x = p.x - (y - y0) * inc;
+    p.e.setAttribute('x1', x.toFixed(1)); p.e.setAttribute('y1', y.toFixed(1)); p.e.setAttribute('x2', (x - p.l * inc).toFixed(1)); p.e.setAttribute('y2', (y + p.l).toFixed(1)); });
+  // gotas en el parabrisas (por fuera) y algunos regueros que bajan
+  const rg = X.azar(21), gotas = [];
+  for (let i = 0; i < 120; i++) { const x = 40 + rg() * 1000, y = 380 + rg() * 800, r = 3 + Math.pow(rg(), 2.2) * 14;
+    const g = mk('g', { transform: `translate(${x.toFixed(1)} ${y.toFixed(1)})` }, $('gotasA'));
+    mk('ellipse', { rx: r, ry: r * 1.08, fill: 'url(#g-gota)' }, g); mk('ellipse', { cx: -r * 0.3, cy: -r * 0.35, rx: r * 0.28, ry: r * 0.2, fill: '#fff', opacity: 0.7 }, g);
+    gotas.push({ g, x, y, r, baja: r > 9 && rg() < 0.6, v: 30 + rg() * 60, f: rg() * 10 }); }
+  // rejilla del desempañador
+  for (let x = 240; x < 846; x += 16) mk('line', { x1: x, y1: 1170, x2: x, y2: 1188, stroke: '#2C2933', 'stroke-width': 4 }, $('rejilla'));
+  // aire que sube por el cristal desde la rejilla (5 carriles)
+  const carriles = [250, 400, 540, 680, 830].map((x0, i) => (u) => [x0 + (x0 - 540) * 0.25 * u + 14 * Math.sin(u * 6 + i), 1190 - 820 * u]);
+  const aireA = carriles.map((ruta, i) => X.particulas($('aireA'), { n: 16, ruta, vuelta: 1.5, tam: [5, 11], color: '#FFE2C4', op: 0.55, semilla: 40 + i, jitter: 16 }));
+  const flA = [X.flecha($('flechasA'), { d: 'M330 1170 C 300 1000 300 800 360 600', color: '#FF8A5B', ancho: 12 }), X.flecha($('flechasA'), { d: 'M750 1170 C 780 1000 780 800 720 600', color: '#FF8A5B', ancho: 12 })];
+  const ondaAC = X.onda($('ondasPanel'), { x: 440, y: 1410, color: '#5BE49B', radio: 150, ancho: 8 });
+  const ondaRec = X.onda($('ondasPanel'), { x: 640, y: 1410, color: '#FF5A5F', radio: 150, ancho: 8 });
+  const ondaDef = X.onda($('ondasPanel'), { x: 540, y: 1410, color: '#FF8A5B', radio: 150, ancho: 8 });
+  const ledOn = (el, on, col) => { el.setAttribute('fill', on > 0.5 ? col : '#3A3742'); el.style.filter = on > 0.5 ? `drop-shadow(0 0 10px ${col})` : ''; };
+  // humedad que se lleva el A/C: gotitas azules que bajan a la rejilla
+  const secado = X.particulas($('aireA'), { n: 26, ruta: (u) => [540 + 380 * Math.cos(u * 3.1) * (1 - u), 700 + 480 * u], vuelta: 1.6, tam: [5, 10], color: '#6FC3FF', op: 0.8, semilla: 77, jitter: 60 });
+
+  // ---------- ESCENA B ----------
+  const rb = X.azar(33);
+  [[1150, 300, '#FFB25C'], [1350, 520, '#FF3B4A'], [1250, 820, '#FFC27A'], [1550, 200, '#E8F0FF'], [1100, 650, '#42E38B'], [1500, 900, '#FFB25C'], [900, 100, '#FFC27A']].forEach(([x, y, c]) => {
+    mk('circle', { cx: x, cy: y, r: 50 + rb() * 50, fill: c, opacity: 0.55, filter: 'url(#f-bokeh2)' }, $('bokehB')); });
+  const ruta = (pts) => (u) => { const L = []; let tot = 0; for (let i = 1; i < pts.length; i++) { const d = Math.hypot(pts[i][0] - pts[i - 1][0], pts[i][1] - pts[i - 1][1]); L.push(d); tot += d; }
+    let k = u * tot; for (let i = 0; i < L.length; i++) { if (k <= L[i]) { const f = k / L[i]; return [pts[i][0] + (pts[i + 1][0] - pts[i][0]) * f, pts[i][1] + (pts[i + 1][1] - pts[i][1]) * f]; } k -= L[i]; } return pts[pts.length - 1]; };
+  const boca = ruta([[492, 880], [600, 866], [720, 828], [812, 800]]);
+  const aliento = X.humo($('alientoB'), { ruta: boca, n: 22, vida: 2.0, tam: [22, 70], color: '#DDEBFF', op: 0.42, semilla: 3, viento: [10, -16] });
+  const molec = X.particulas($('vaporB'), { n: 34, ruta: boca, vuelta: 1.8, tam: [4, 8], color: '#9FD4FF', op: 0.9, semilla: 9, jitter: 30 });
+  const ropaV = X.humo($('ropaVapor'), { ruta: ruta([[330, 1110], [470, 1030], [640, 940], [790, 860]]), n: 18, vida: 2.4, tam: [24, 64], color: '#CFE4FF', op: 0.36, semilla: 12, viento: [10, -30] });
+  const molec2 = X.particulas($('vaporB'), { n: 22, ruta: ruta([[340, 1120], [520, 1010], [700, 910], [850, 880]]), vuelta: 2.2, tam: [4, 7], color: '#9FD4FF', op: 0.85, semilla: 19, jitter: 36 });
+  // manchas y gotas de la ropa mojada
+  for (let i = 0; i < 16; i++) mk('ellipse', { cx: 210 + rb() * 300, cy: 1080 + rb() * 380, rx: 16 + rb() * 30, ry: 10 + rb() * 18, fill: '#0E1A2E', opacity: 0.55 }, $('manchasRopa'));
+  const gotRopa = Array.from({ length: 14 }, () => { const g = mk('g', {}, $('gotasRopa')); const r = 5 + rb() * 6; mk('ellipse', { rx: r, ry: r * 1.25, fill: '#7FC4FF', opacity: 0.85 }, g); mk('circle', { cx: -r * 0.3, cy: -r * 0.4, r: r * 0.3, fill: '#fff', opacity: 0.8 }, g);
+    return { g, x: 220 + rb() * 290, y: 1090 + rb() * 330, cae: rb() < 0.4, f: rb() }; });
+  // gotas por fuera del cristal y microgotas por dentro (sobre la cara interior)
+  const dir = [362 / 878.1, 800 / 878.1], nIn = [-dir[1], dir[0]], nOut = [dir[1], -dir[0]];
+  for (let i = 0; i < 26; i++) { const u = 0.05 + rb() * 0.9, r = 5 + rb() * 9; const x = 668 + 362 * u + nOut[0] * r * 0.6, y = 368 + 800 * u + nOut[1] * r * 0.6;
+    mk('circle', { cx: x, cy: y, r, fill: '#BFE3FF', opacity: 0.75 }, $('gotasFuera')); mk('circle', { cx: x - r * 0.3, cy: y - r * 0.3, r: r * 0.3, fill: '#fff', opacity: 0.8 }, $('gotasFuera')); }
+  const micro = Array.from({ length: 150 }, () => { const u = 0.08 + rb() * 0.84, r = 1.8 + Math.pow(rb(), 1.6) * 5.5, d = r * 0.5 + rb() * 3;
+    const x = 640 + 362 * u + nIn[0] * d, y = 380 + 800 * u + nIn[1] * d; const g = mk('g', { transform: `translate(${x.toFixed(1)} ${y.toFixed(1)})` }, $('microB'));
+    const c = mk('circle', { r, fill: '#E3F1FF', opacity: 0.9 }, g); mk('circle', { cx: -r * 0.3, cy: -r * 0.3, r: r * 0.35, fill: '#fff' }, g);
+    return { g, c, r, u, k: rb() }; });
+  const flB = X.flecha($('flechasB'), { d: 'M560 980 C 650 980 720 930 790 860', color: '#9FD4FF', ancho: 10 });
+  const ondaB = X.onda($('ondaB'), { x: 820, y: 800, color: '#4FB3FF', radio: 260, ancho: 10 });
+  const ondaT = X.onda($('ondaTermo'), { x: 78, y: 214, color: '#9FD4FF', radio: 140, ancho: 8 });
+  const lupa = X.lupa($('lupaCapa'), { fuente: '#contB', r: 190, zoom: 4.2 });
+
+  // ---------- ESCENA C: la gota y la luz ----------
+  for (const [x, r] of [[60, 70], [990, 90], [-160, 120], [1240, 110], [150, 26], [920, 22]]) mk('path', { d: `M${x - r} 720 C ${x - r * 0.95} ${720 + r * 1.2}, ${x + r * 0.95} ${720 + r * 1.2}, ${x + r} 720 Z`, fill: 'url(#g-gotaC)', opacity: 0.8, stroke: '#CFEBFF', 'stroke-width': 3, 'stroke-opacity': 0.7 }, $('gotitasC'));
+  [[1150, 300, '#FFB25C'], [-80, 1300, '#4FB3FF'], [1100, 1500, '#FF3B4A'], [-60, 300, '#FFC27A']].forEach(([x, y, c]) => mk('circle', { cx: x, cy: y, r: 140, fill: c, opacity: 0.3, filter: 'url(#f-bokeh2)' }, $('bokehC')));
+  const bezY = (x) => { let best = 720, bd = 1e9; for (let i = 0; i <= 200; i++) { const u = i / 200, m = 1 - u; const px = m * m * m * 230 + 3 * m * m * u * 250 + 3 * m * u * u * 830 + u * u * u * 850, py = m * m * m * 720 + 3 * m * m * u * 1090 + 3 * m * u * u * 1090 + u * u * u * 720;
+    if (Math.abs(px - x) < bd) { bd = Math.abs(px - x); best = py; } } return best; };
+  const rayos = [300, 390, 470, 540, 610, 690, 780].map((x, i) => { const yb = bezY(x), ang = (x - 540) / 300 * 1.05 + (i % 2 ? 0.12 : -0.12), L = 250;
+    return X.flecha($('rayosC'), { d: `M${x} 330 L${x} ${yb.toFixed(0)} L${(x + Math.sin(ang) * L).toFixed(0)} ${(yb + Math.cos(ang) * L).toFixed(0)}`, color: '#FFE6A8', ancho: 8 }); });
+  $('rayosC').setAttribute('filter', 'url(#f-brillo)');
+  const rectos = [100, 990].map((x) => X.flecha($('rayosRectos'), { d: `M${x} 330 L${x} 1260`, color: '#FFE6A8', ancho: 6 }));
+  $('rayosRectos').setAttribute('opacity', '.45');
+
+  // ---------- capa fija ----------
+  const subs = X.subtitulos($('subs'), { max: 3, y: 1470, claves: ['empaña', 'cristal', 'respiras', 'vapor', 'ropa', 'mojada', 'húmedo', 'frío', 'rocío', 'microgotas', 'luz', 'blanco', 'secar', 'acondicionado', 'humedad', 'calefacción', 'parabrisas', 'recirculación', 'lluvia'] });
+  const grano = X.grano($('lienzo'), 0.07);
+  const pp = X.primerPlano($('lienzo'), { n: 7, tipo: 'bokeh', color: '#FFC88A', semilla: 31, prof: [1.7, 2.5], blur: [24, 40], op: [0.1, 0.22] });
+  const pp2 = X.primerPlano($('lienzo'), { n: 5, tipo: 'bokeh', color: '#FF4D5E', semilla: 57, prof: [1.9, 2.8], blur: [26, 40], op: [0.08, 0.16] });
+  const dest = X.destello($('chip2')), destF = X.destello($('final'));
+  const merc = $('merc'), bulbo = $('bulbo');
+  const mezcla = (a, b, u) => { const h = (s) => [1, 3, 5].map((i) => parseInt(s.substr(i, 2), 16)); const p = h(a), q = h(b); return `rgb(${p.map((v, i) => Math.round(X.lerp(v, q[i], u))).join(',')})`; };
+
+  return (t) => {
+    $('barra').style.width = (100 * t / X.dur).toFixed(2) + '%';
+    const vA = vis(t, -1, T1) + vis(t, T3, 99);
+    $('escA').style.opacity = X.limita(vA).toFixed(3); $('escA').style.display = vA <= 0.001 ? 'none' : ''; { const bl = (1 - X.limita(vA)) * 22; $('escA').style.filter = bl > 0.3 ? `blur(${bl.toFixed(1)}px)` : ''; }
+    const verB = escena($('escB'), t, T1, T2), verC = escena($('escC'), t, T2, T3);
+    // la cámara de la escena visible se calcula la última (primer plano y desenfoques la usan)
+    if (verB) X.camara($('camB'), t, camB); if (verC) X.camara($('camC'), t, camC);
+    if (vA > 0.001) X.camara($('camA'), t, camA);
+    pp(t); pp2(t); grano(t);
+
+    // ===== A =====
+    if (vA > 0.001) {
+      X.profundidad($('ciudad'), 0.86);
+      pintaLluvia(lluA, t, 250, 1300);
+      bok.forEach((b) => b.e.setAttribute('opacity', (b.o * (0.85 + 0.15 * X.ruido(t * 1.3 + b.s, 2))).toFixed(3)));
+      gotas.forEach((g) => { if (!g.baja) return; const y = g.y + ((t * g.v + g.f * 80) % 260); g.g.setAttribute('transform', `translate(${(g.x + 3 * Math.sin(t + g.f)).toFixed(1)} ${y.toFixed(1)})`); });
+      // vaho: se forma desde los bordes (gancho), es total en «blanco» y se va de abajo arriba con el aire seco
+      const forma = X.C.suave(X.seg(t, -0.3, A.nada + 0.2));
+      $('centroLimpio').setAttribute('rx', (460 * (1 - forma)).toFixed(1)); $('centroLimpio').setAttribute('ry', (330 * (1 - forma)).toFixed(1));
+      const limpia = X.C.suave(X.seg(t, A.calef + 0.1, A.lluvia + 0.2));
+      const L = X.lerp(1320, 120, limpia);
+      let d = `M-300 1500 L-300 ${L.toFixed(1)}`;
+      for (let x = -300; x <= 1400; x += 40) { const y = L - 150 * Math.exp(-(((x - 330) / 200) ** 2)) - 150 * Math.exp(-(((x - 750) / 200) ** 2)) + 18 * Math.sin(x / 50 + t * 2.4); d += ` L${x} ${y.toFixed(1)}`; }
+      $('despejado').setAttribute('d', d + ' L1400 1500 Z');
+      const vaho = X.lerp(0.42, 1, forma);
+      $('vaho').setAttribute('opacity', (0.8 * vaho).toFixed(3));
+      $('usoBorroso').style.filter = `blur(${(6 + 16 * vaho).toFixed(1)}px)`;
+      // botones y aire
+      const ac = t >= A.acond - 0.05, def = t >= A.calef, rec = t < A.recirc - 0.05;
+      ledOn($('ledAC'), ac, '#5BE49B'); ledOn($('ledDef'), def, '#FF8A5B'); ledOn($('ledRec'), rec, '#FF9A3C');
+      $('tachaRec').setAttribute('opacity', X.C.suave(X.seg(t, A.recirc - 0.05, A.recirc + 0.3)).toFixed(3));
+      ondaAC.dibuja(t, A.acond - 0.05); ondaDef.dibuja(t, A.calef); ondaRec.dibuja(t, A.recirc - 0.05);
+      const gt = X.C.natural(X.seg(t, A.calef - 0.1, A.calef + 0.9));
+      $('pomoTemp').setAttribute('transform', `rotate(${X.lerp(-40, 95, gt).toFixed(2)})`);
+      $('pomoVent').setAttribute('transform', `rotate(${X.lerp(-60, 80, X.C.natural(X.seg(t, A.sumale, A.sumale + 0.9))).toFixed(2)})`);
+      aireA.forEach((p, i) => p.dibuja(t, A.calef + 0.1 + i * 0.05, null));
+      flA.forEach((f, i) => f.dibuja(t, A.parabrisas - 0.1 + i * 0.12, 0.9, A.recirc - 0.4));
+      secado.dibuja(t, A.humedad - 0.3, A.sumale + 0.3);
+    }
+    // ===== B =====
+    if (verB) {
+      X.desenfoqueFondo($('fondoB'), { base: 4, porZoom: 10, max: 20 });
+      pintaLluvia(lluB, t, -400, 1500, 0.3);
+      aliento.dibuja(t, A.respiras - 0.15, null);
+      molec.dibuja(t, A.vapor - 0.1, null);
+      ropaV.dibuja(t, A.ropa + 0.05, null); molec2.dibuja(t, A.suelta - 0.1, null);
+      gotRopa.forEach((g) => { const y = g.y + (g.cae ? ((t * 120 + g.f * 300) % 300) : 0); const o = g.cae ? Math.min(1, (300 - ((t * 120 + g.f * 300) % 300)) / 60) : 1;
+        g.g.setAttribute('transform', `translate(${g.x.toFixed(1)} ${y.toFixed(1)})`); g.g.setAttribute('opacity', (o * (t > A.ropa - 0.3 ? 1 : 0.35)).toFixed(3)); });
+      const fr = X.C.suave(X.seg(t, A.frio - 0.1, A.frio + 0.7));
+      $('frioB').setAttribute('opacity', (0.45 * fr).toFixed(3));
+      flB.dibuja(t, A.toca - 0.1, 0.7, A.enfria);
+      // microgotas: nacen al bajar del punto de rocío y crecen
+      const cond = X.seg(t, A.debajo + 0.05, A.micro + 0.4);
+      micro.forEach((m) => { const k = X.limita(cond * 1.6 - m.k * 0.6); m.g.setAttribute('opacity', k.toFixed(3)); m.c.setAttribute('r', (m.r * (0.4 + 0.6 * k)).toFixed(2)); });
+      ondaB.dibuja(t, A.debajo + 0.1);
+      const la = t < A.convierte ? 0 : X.C.blando((t - A.convierte) / 0.6);
+      lupa.dibuja(t, { x: 560, y: 880, mira: [826, 786], z: 4.2, a: la * (1 - X.seg(t, T2 - 0.3, T2)) });
+      // termómetro: el aire se enfría y cruza el punto de rocío
+      const baja = X.C.inOut(X.seg(t, A.enfria + 0.1, A.debajo + 0.35));
+      const top = X.lerp(60, 290, baja); merc.setAttribute('y', top.toFixed(1)); merc.setAttribute('height', (360 - top).toFixed(1));
+      const col = mezcla('#FF8A5B', '#4FB3FF', X.seg(baja, 0.4, 1)); merc.setAttribute('fill', col); bulbo.setAttribute('fill', col);
+      ondaT.dibuja(t, A.debajo + 0.12);
+      $('condensa').setAttribute('opacity', X.C.suave(X.seg(t, A.debajo + 0.15, A.debajo + 0.5)).toFixed(3));
+    }
+    // ===== C =====
+    if (verC) {
+      rectos.forEach((f) => f.dibuja(t, A.cada, 0.8));
+      rayos.forEach((f, i) => f.dibuja(t, A.cada + 0.1 + i * 0.07, 1.1));
+    }
+
+    // ===== capa fija =====
+    X.anima($('titular'), t, { sale: T1 - 0.35, desde: { y: -40, blur: 18, s: 0.94 }, curva: 'firme' });
+    X.anima($('cVapor'), t, { entra: A.vapor, dur: 0.6, sale: A.ropa - 0.15, desde: { x: -60, y: 0, blur: 14, s: 0.9 }, curva: 'blando' });
+    X.anima($('cRopa'), t, { entra: A.ropa + 0.05, dur: 0.6, sale: A.humedo - 0.25, desde: { x: 60, y: 0, blur: 14, s: 0.9 }, curva: 'blando' });
+    X.anima($('cHumedo'), t, { entra: A.humedo, dur: 0.6, sale: A.frio - 0.2, desde: { x: -60, y: 0, blur: 14, s: 0.9 }, curva: 'blando' });
+    X.anima($('cFrio'), t, { entra: A.frio, dur: 0.6, sale: A.enfria - 0.1, desde: { x: 60, y: 0, blur: 14, s: 0.9 }, curva: 'blando' });
+    X.anima($('termo'), t, { entra: A.enfria - 0.1, dur: 0.7, sale: A.convierte - 0.3, desde: { x: -80, y: 0, blur: 16, s: 0.92 }, curva: 'firme' });
+    X.anima($('cMicro'), t, { entra: A.convierte + 0.2, dur: 0.6, sale: T2 - 0.25, desde: { x: 60, y: 0, blur: 14, s: 0.9 }, curva: 'blando' });
+    X.anima($('cLuz'), t, { entra: A.desvia - 0.05, dur: 0.6, sale: T3 - 0.2, desde: { y: -30, blur: 12 }, curva: 'firme' });
+    X.anima($('eBlanco'), t, { entra: A.blanco - 0.1, dur: 0.6, sale: A.truco - 0.15, desde: { y: -30, blur: 12 }, curva: 'firme' });
+    X.anima($('chip1'), t, { entra: A.calentar - 0.1, dur: 0.6, sale: A.enciende - 0.3, desde: { y: -30, blur: 14, s: 0.9 }, curva: 'blando' });
+    X.anima($('chip2'), t, { entra: A.secar - 0.05, dur: 0.6, sale: A.enciende - 0.25, desde: { y: 30, blur: 14, s: 0.85 }, curva: 'blando' });
+    if (t > A.secar && t < A.enciende - 0.3) { const o = $('chip1').style.opacity; $('chip1').style.opacity = (0.55 * (o === '' ? 1 : +o)).toFixed(3); }
+    dest.dibuja(t, A.secar + 0.2, 0.9);
+    X.anima($('cAC'), t, { entra: A.humedad - 0.1, dur: 0.6, sale: A.sumale - 0.2, desde: { x: -60, y: 0, blur: 14, s: 0.9 }, curva: 'blando' });
+    X.anima($('cCalor'), t, { entra: A.calef, dur: 0.6, sale: A.recirc - 0.45, desde: { x: -60, y: 0, blur: 14, s: 0.9 }, curva: 'blando' });
+    X.anima($('cRec'), t, { entra: A.recirc + 0.05, dur: 0.6, sale: A.segundos - 0.1, desde: { x: 60, y: 0, blur: 14, s: 0.9 }, curva: 'blando' });
+    X.anima($('final'), t, { entra: A.segundos + 0.15, dur: 0.75, desde: { y: -50, blur: 20, s: 0.94 }, curva: 'firme' });
+    X.anima($('f1'), t, { entra: A.segundos + 0.3, dur: 0.55, desde: { x: -40, y: 0, blur: 12 }, curva: 'blando' });
+    X.anima($('f2'), t, { entra: A.segundos + 0.42, dur: 0.55, desde: { x: -40, y: 0, blur: 12 }, curva: 'blando' });
+    X.anima($('f3'), t, { entra: A.segundos + 0.54, dur: 0.55, desde: { x: -40, y: 0, blur: 12 }, curva: 'blando' });
+    destF.dibuja(t, A.lluvia, 1.0);
+    subs.dibuja(t);
+  };
+});
+</script></body></html>

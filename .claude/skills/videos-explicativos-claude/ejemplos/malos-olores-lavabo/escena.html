@@ -1,0 +1,190 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><title>Malos olores del lavabo</title>
+<link rel="stylesheet" href="motor/explica.css">
+<script src="voz/timeline.js"></script>
+<script src="motor/explica.js"></script>
+<style>
+  #lienzo { background: radial-gradient(1100px 900px at 50% 30%, #2A2531 0%, #121016 75%); }
+  .tile { fill: none; stroke: rgba(255,255,255,.05); stroke-width: 3; }
+  .tubo-base { fill: none; stroke: #5B626E; stroke-width: 84; stroke-linecap: round; stroke-linejoin: round; }
+  .tubo-medio { fill: none; stroke: #9AA2AE; stroke-width: 70; stroke-linecap: round; stroke-linejoin: round; }
+  .tubo-luz { fill: none; stroke: #E6EAF0; stroke-width: 14; stroke-linecap: round; stroke-linejoin: round; opacity: .55; }
+  .tubo-int { fill: none; stroke: #1A1820; stroke-width: 56; stroke-linecap: round; stroke-linejoin: round; }
+  .callout { position: absolute; padding: 14px 24px 14px 20px; border-radius: 18px; background: rgba(20,18,26,.82); backdrop-filter: blur(6px);
+    border: 2px solid rgba(255,255,255,.12); font-family: 'Bricolage'; font-weight: 700; font-size: 60px; letter-spacing: -1px; white-space: nowrap;
+    box-shadow: 0 18px 40px -12px rgba(0,0,0,.7); display: flex; align-items: center; gap: 14px; }
+  .callout .dot { width: 22px; height: 22px; border-radius: 50%; }
+  .callout small { font-family: 'Mono'; font-size: 26px; letter-spacing: 3px; color: var(--tenue); display: block; font-weight: 700; }
+  .estado { position: absolute; left: 50%; top: 190px; transform: translateX(-50%); padding: 16px 30px; border-radius: 999px; font-family: 'Mono'; font-weight: 700;
+    font-size: 34px; letter-spacing: 2px; white-space: nowrap; box-shadow: 0 14px 30px -10px rgba(0,0,0,.6); }
+  .card { position: absolute; left: 80px; right: 80px; padding: 34px 40px; border-radius: 30px; background: rgba(20,18,26,.9); border: 2px solid rgba(255,255,255,.1);
+    box-shadow: 0 30px 60px -20px rgba(0,0,0,.8); }
+  .fila { display: flex; align-items: center; gap: 24px; font-size: 46px; font-weight: 700; margin: 12px 0; }
+  .fila small { display: block; font-size: 30px; color: var(--tenue); font-weight: 500; }
+  .chk { width: 66px; height: 66px; flex: none; border-radius: 50%; background: var(--ok); display: flex; align-items: center; justify-content: center; box-shadow: 0 0 24px rgba(91,228,155,.45); }
+</style></head>
+<body><div id="lienzo">
+  <svg id="mundo-svg" viewBox="0 0 1080 1920"><g id="cam">
+    <!-- pared de azulejos (lejos: se mueve menos que la cámara) -->
+    <g id="pared"><rect x="-900" y="-600" width="2900" height="1180" fill="#26222C"/><g id="azulejos"></g>
+      <rect x="-900" y="520" width="2900" height="2600" fill="#1C1921"/></g>
+    <rect x="-900" y="-600" width="2900" height="1500" fill="url(#g-luz)"/>
+    <!-- mueble de madera -->
+    <rect x="40" y="560" width="820" height="1260" rx="22" fill="url(#g-madera)" filter="url(#f-sombra)"/>
+    <rect x="66" y="590" width="768" height="1200" rx="14" fill="#16121A"/>
+    <!-- tubería: desagüe → sifón → pared → bajante a la alcantarilla -->
+    <g id="tuberia">
+      <path class="tubo-base" d="M430 720 L430 1500 C430 1660 650 1660 650 1500 L650 1440 L960 1440 L960 2700"/>
+      <path class="tubo-medio" d="M430 720 L430 1500 C430 1660 650 1660 650 1500 L650 1440 L960 1440 L960 2700"/>
+      <path class="tubo-int" d="M430 720 L430 1500 C430 1660 650 1660 650 1500 L650 1440 L960 1440 L960 2700"/>
+      <mask id="m-int"><path d="M430 720 L430 1500 C430 1660 650 1660 650 1500 L650 1440 L960 1440 L960 2700" fill="none" stroke="#fff" stroke-width="56" stroke-linecap="round" stroke-linejoin="round"/></mask>
+      <g mask="url(#m-int)">
+        <path id="agua" fill="url(#g-agua)" d=""/>
+        <path id="aguaLuz" fill="none" stroke="#CFEBFF" stroke-width="5" opacity=".8" d=""/>
+        <g id="suciedad"></g>
+        <g id="gasDentro"></g>
+      </g>
+      <path class="tubo-luz" d="M414 720 L414 1500 C414 1640 634 1640 634 1500 L634 1424 L944 1424 L944 2700"/>
+      <!-- corte (se ve dentro) -->
+      <path id="corteBorde" d="M430 1360 L430 1500 C430 1660 650 1660 650 1500 L650 1440 L760 1440" fill="none" stroke="#FFB38A" stroke-width="4" stroke-dasharray="14 12" opacity="0" style="display:none"/>
+    </g>
+    <!-- encimera y lavabo -->
+    <rect x="-20" y="500" width="940" height="62" rx="14" fill="#3A3542" filter="url(#f-sombra-s)"/>
+    <rect x="-20" y="500" width="940" height="10" rx="5" fill="#57505F"/>
+    <path d="M150 512 L710 512 Q702 702 520 724 L340 724 Q158 702 150 512 Z" fill="url(#g-ceramica)" filter="url(#f-sombra)"/>
+    <path d="M190 526 L670 526 Q658 678 512 698 L348 698 Q202 678 190 526 Z" fill="url(#g-ceramica-in)"/>
+    <ellipse cx="430" cy="686" rx="38" ry="11" fill="#5C5662"/><ellipse cx="430" cy="684" rx="22" ry="5" fill="#2A2730"/>
+    <!-- grifo cromado -->
+    <g filter="url(#f-sombra-s)">
+      <rect x="532" y="470" width="56" height="40" rx="10" fill="url(#g-cromo)"/>
+      <path d="M560 480 L560 410 Q560 372 522 372 L470 372" fill="none" stroke="url(#g-cromo)" stroke-width="26" stroke-linecap="round"/>
+      <rect id="mando" x="590" y="440" width="70" height="18" rx="9" fill="url(#g-cromo)"/>
+    </g>
+    <path id="chorro" fill="url(#g-agua)" opacity="0" d=""/>
+    <!-- puertas del mueble (se abren al decir «debajo») -->
+    <g id="puertas">
+      <g id="pIzq"><rect x="70" y="594" width="380" height="1192" rx="12" fill="url(#g-madera)" stroke="rgba(255,255,255,.06)" stroke-width="3"/><rect x="410" y="1100" width="12" height="120" rx="6" fill="url(#g-cromo)"/></g>
+      <g id="pDer"><rect x="452" y="594" width="380" height="1192" rx="12" fill="url(#g-madera)" stroke="rgba(255,255,255,.06)" stroke-width="3"/><rect x="480" y="1100" width="12" height="120" rx="6" fill="url(#g-cromo)"/></g>
+    </g>
+    <g id="olor"></g><g id="gasFuera"></g><g id="vapor"></g>
+    <!-- marcas de estado del mundo -->
+    <g transform="translate(560 1390)"><g id="tic"><circle r="50" fill="var(--ok)" filter="url(#f-brillo)"/><path d="M-21 2 L-6 17 L23 -15" fill="none" stroke="#0E0D11" stroke-width="11" stroke-linecap="round" stroke-linejoin="round"/></g></g>
+    <g transform="translate(560 1390)"><g id="cruz"><circle r="50" fill="var(--peligro)" filter="url(#f-brillo)"/><path d="M-19 -19 L19 19 M19 -19 L-19 19" stroke="#fff" stroke-width="11" stroke-linecap="round"/></g></g>
+  </g></svg>
+
+  <div id="titular" class="titular" style="top:170px;text-shadow:0 10px 40px rgba(0,0,0,.6)">¿Por qué huele a <em>alcantarilla</em>?</div>
+  <div id="cSifon" class="callout" style="left:560px;top:1160px"><span class="dot" style="background:var(--acento)"></span><div><small>ESTO ES EL</small>SIFÓN</div></div>
+  <div id="cSello" class="callout" style="left:90px;top:1160px"><span class="dot" style="background:var(--agua)"></span><div><small>TAPÓN DE</small>AGUA</div></div>
+  <div id="cGas" class="callout" style="left:520px;top:1160px"><span class="dot" style="background:var(--gas)"></span><div><small>DE LA ALCANTARILLA</small>GASES</div></div>
+  <div id="eSemanas" class="estado" style="background:rgba(255,90,95,.18);border:2px solid var(--peligro);color:#FF8A8D">3 SEMANAS SIN USAR</div>
+  <div id="eSucio" class="estado" style="background:rgba(201,151,90,.18);border:2px solid #C9975A;color:#E8BE88">PELOS + JABÓN</div>
+  <div id="solucion" class="card" style="top:150px">
+    <div class="fila" id="f1"><div class="chk"><svg width="40" height="40" viewBox="-20 -20 40 40"><path d="M-12 1 L-3 10 L13 -9" fill="none" stroke="#0E0D11" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/></svg></div><div>Abre el grifo unos segundos<small>cada semana</small></div></div>
+    <div class="fila" id="f2"><div class="chk"><svg width="40" height="40" viewBox="-20 -20 40 40"><path d="M-12 1 L-3 10 L13 -9" fill="none" stroke="#0E0D11" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/></svg></div><div>Limpia el sifón<small>2 veces al año</small></div></div>
+  </div>
+  <div id="subs"></div>
+  <div id="barra" class="progreso"></div>
+</div>
+<script>
+X.listo(() => {
+  const $ = (id) => document.getElementById(id), NS = 'http://www.w3.org/2000/svg';
+  X.defs($('mundo-svg'));
+  // azulejos
+  for (let y = -600; y < 520; y += 120) for (let x = -900; x < 2000; x += 120) { const r = document.createElementNS(NS, 'rect'); Object.entries({ x: x + 3, y: y + 3, width: 114, height: 114, rx: 6, class: 'tile' }).forEach(([k, v]) => r.setAttribute(k, v)); $('azulejos').appendChild(r); }
+  const A = {
+    debajo: X.debe(X.en('debajo'), 'debajo'), curva: X.debe(X.en('curva'), 'curva'), sifon: X.debe(X.en('sifón'), 'sifón'), agua: X.debe(X.en('agua'), 'agua'),
+    tapon: X.debe(X.en('tapón'), 'tapón'), gases: X.debe(X.en('gases'), 'gases'), chocan: X.debe(X.en('chocan'), 'chocan'), semanas: X.debe(X.en('semanas'), 'semanas'),
+    evapora: X.debe(X.en('evapora'), 'evapora'), desaparece: X.debe(X.en('desaparece'), 'desaparece'), olor: X.debe(X.en('olor sube'), 'olor sube'),
+    pelos: X.debe(X.en('pelos'), 'pelos'), pudre: X.debe(X.en('pudre'), 'pudre'), solucion: X.debe(X.en('solución'), 'solución'),
+    grifo: X.debe(X.en('grifo'), 'grifo'), limpia: X.debe(X.en('limpia'), 'limpia'),
+  };
+  const camaras = [
+    { t: 0, x: 450, y: 620, z: 1.32, r: -1.2, rx: 6, ry: -8 },
+    { t: A.debajo + 0.35, x: 470, y: 1080, z: 0.9, r: 0, rx: 10, ry: 4, dur: 1.3 },
+    { t: A.sifon + 0.1, x: 560, y: 1500, z: 1.5, r: 0.8, rx: -4, ry: -14, dur: 1.2 },
+    { t: A.gases + 0.5, x: 760, y: 1760, z: 0.95, r: -0.6, rx: -8, ry: 16, dur: 1.3 },
+    { t: A.chocan + 0.3, x: 590, y: 1520, z: 1.45, r: 0.4, rx: 4, ry: -6 },
+    { t: A.evapora + 0.1, x: 540, y: 1545, z: 1.68, r: -0.5, rx: 12, ry: 8, dur: 1.4 },
+    { t: A.olor + 0.3, x: 560, y: 1180, z: 0.66, r: 0, rx: 0, ry: -10, dur: 1.4 },
+    { t: A.pelos + 0.3, x: 540, y: 1565, z: 1.75, r: 0.6, rx: -6, ry: 14, dur: 1.2 },
+    { t: A.solucion + 0.4, x: 500, y: 1120, z: 0.82, r: 0, rx: 4, ry: 0, dur: 1.4 },
+  ];
+  camaras.slice(1).forEach((c) => X.sonido(c.t - (c.dur ?? 1.1) * 0.75, 'whoosh', 0.6));
+  [A.sifon, A.tapon, A.gases, A.semanas, A.pelos, A.solucion].forEach((t) => X.sonido(t, 'pop', 0.5));
+  X.sonido(A.chocan + 0.2, 'feedback', 0.5); X.sonido(A.desaparece, 'notificacion', 0.5); X.sonido(A.debajo - 0.1, 'click', 0.7);
+
+  const P = (pts) => (u) => { const L = []; let tot = 0; for (let i = 1; i < pts.length; i++) { const d = Math.hypot(pts[i][0] - pts[i - 1][0], pts[i][1] - pts[i - 1][1]); L.push(d); tot += d; }
+    let k = u * tot; for (let i = 0; i < L.length; i++) { if (k <= L[i]) { const f = k / L[i]; return [pts[i][0] + (pts[i + 1][0] - pts[i][0]) * f, pts[i][1] + (pts[i + 1][1] - pts[i][1]) * f]; } k -= L[i]; } return pts[pts.length - 1]; };
+  // gases: humo verde blando. Bloqueado: sube la bajante y se para sobre el agua. Libre: cruza el sifón vacío y sale por el lavabo
+  const gasBloq = X.humo($('gasDentro'), { ruta: P([[960, 2600], [960, 1440], [690, 1440], [650, 1470]]), n: 26, vida: 2.6, tam: [22, 40], color: '#7FD66A', op: 0.75, semilla: 4, viento: [0, 0] });
+  const gasLibre = X.humo($('gasDentro'), { ruta: P([[960, 2600], [960, 1440], [650, 1440], [650, 1560], [540, 1630], [430, 1560], [430, 700]]), n: 34, vida: 3.2, tam: [22, 40], color: '#7FD66A', op: 0.75, semilla: 9, viento: [0, 0] });
+  const olorSale = X.humo($('olor'), { ruta: P([[430, 690], [410, 560], [470, 380], [440, 160]]), n: 18, vida: 2.6, tam: [40, 110], color: '#86D86F', op: 0.4, semilla: 2, viento: [30, -40] });
+  const vapor = X.humo($('vapor'), { ruta: P([[540, 1600], [560, 1380]]), n: 14, vida: 1.8, tam: [16, 40], color: '#CFEBFF', op: 0.45, semilla: 6, viento: [10, -30] });
+  const burbujas = X.humo($('suciedad'), { ruta: P([[540, 1620], [540, 1470]]), n: 10, vida: 1.4, tam: [10, 22], color: '#C7A06D', op: 0.7, semilla: 11, viento: [0, 0] });
+  // suciedad: manchas marrones blandas en el fondo
+  const az = X.azar(5);
+  const manchas = Array.from({ length: 18 }, (_, i) => { const c = document.createElementNS(NS, 'ellipse'); const u = i / 17; c.setAttribute('cx', 432 + 216 * u); c.setAttribute('cy', 1600 + 22 * Math.sin(Math.PI * u) + (az() - 0.5) * 20);
+    c.setAttribute('rx', 16 + az() * 18); c.setAttribute('ry', 10 + az() * 9); c.setAttribute('fill', i % 3 ? '#8A6A3F' : '#5E4A30'); $('suciedad').appendChild(c); return { c, f: az() * 6 }; });
+  const subs = X.subtitulos($('subs'), { max: 3, y: 1470, claves: ['alcantarilla', 'debajo', 'sifón', 'agua', 'tapón', 'gases', 'evapora', 'desaparece', 'olor', 'pelos', 'jabón', 'pudre', 'grifo', 'semana', 'limpia', 'año'] });
+  const grano = X.grano($('lienzo'), 0.07);
+  const cam = $('cam');
+  // primer plano: discos de luz cálidos y gotas/tubos muy cerca de la cámara que pasan por delante desenfocados
+  const pp1 = X.primerPlano($('lienzo'), { n: 7, tipo: 'bokeh', color: '#FFD9B0', semilla: 31, prof: [1.7, 2.4], blur: [22, 38], op: [0.12, 0.28] });
+  const pp2 = X.primerPlano($('lienzo'), { n: 4, semilla: 44, prof: [2.2, 3.0], blur: [16, 28], op: [0.32, 0.5], tipo: (g, i, r) => {
+    g.innerHTML = i % 2 ? '<rect x="-40" y="-260" width="80" height="520" rx="40" fill="url(#g-cromo)"/>' : '<ellipse rx="34" ry="46" fill="#7CC8FF" opacity=".8"/><ellipse cx="-10" cy="-14" rx="9" ry="12" fill="#fff" opacity=".7"/>'; } });
+  // los degradados del primer plano viven en el SVG del mundo: se copian
+  document.querySelectorAll('#lienzo > svg:not(#mundo-svg)').forEach((sv) => sv.insertAdjacentHTML('afterbegin', $('mundo-svg').querySelector('defs').outerHTML));
+
+  return (t) => {
+    X.camara(cam, t, camaras);
+    X.profundidad($('pared'), 0.75);
+    X.desenfoqueFondo($('pared'), { base: 1.5, porZoom: 8 });
+    pp1(t); pp2(t);
+    grano(t);
+    $('barra').style.width = (100 * t / X.dur).toFixed(2) + '%';
+    // gancho: el olor sale del lavabo
+    X.anima($('titular'), t, { entra: 0.0, dur: 0.6, sale: A.debajo - 0.3, desde: { y: -40, blur: 18, s: 0.94 }, curva: 'firme' });
+    olorSale.dibuja(t, -1, A.debajo + 0.2);
+    // las puertas del mueble se abren (bisagras a los lados) → se ve la tubería
+    const ab = t < A.debajo - 0.15 ? 0 : X.C.blando((t - (A.debajo - 0.15)) / 0.9), cierra = X.C.inOut(X.seg(t, A.solucion - 0.6, A.solucion + 0.2)) * 0;
+    $('pIzq').setAttribute('transform', `translate(70 0) scale(${(1 - 0.92 * ab).toFixed(4)} 1) translate(-70 0)`);
+    $('pDer').setAttribute('transform', `translate(832 0) scale(${(1 - 0.92 * ab).toFixed(4)} 1) translate(-832 0)`);
+    $('corteBorde').style.opacity = (0.7 * X.C.suave(X.seg(t, A.sifon, A.sifon + 0.5))).toFixed(3);
+    // agua: llena el sifón con «agua»; se evapora con «evapora»; vuelve con el grifo. La superficie tiene olas
+    const lleno = 1452, vacio = 1640;
+    let nivel = X.lerp(vacio, lleno, t < A.agua - 0.1 ? 0 : X.C.firme((t - (A.agua - 0.1)) / 1.2));
+    nivel = X.lerp(nivel, vacio, X.C.inOut(X.seg(t, A.evapora - 0.2, A.desaparece + 0.3)));
+    nivel = X.lerp(nivel, lleno, t < A.grifo ? 0 : X.C.firme((t - A.grifo) / 1.8));
+    const agita = 4 + 10 * Math.exp(-3 * Math.max(0, t - A.agua)) + 8 * Math.exp(-3 * Math.max(0, t - A.grifo)) * (t > A.grifo ? 1 : 0);
+    $('agua').setAttribute('d', X.ola(380, 710, nivel, 1700, t, { amp: agita, largo: 110, vel: 2.2 }));
+    $('aguaLuz').setAttribute('d', X.ola(380, 710, nivel + 3, nivel + 3, t, { amp: agita, largo: 110, vel: 2.2 }).replace(/ L710 [\d.]+ L380 [\d.]+ Z$/, ''));
+    // gases bloqueados → ✓ ; el tapón desaparece → ✗ y el olor sube
+    gasBloq.dibuja(t, A.gases - 0.1, A.semanas);
+    X.anima($('tic'), t, { entra: A.chocan + 0.15, dur: 0.55, sale: A.semanas - 0.2, desde: { s: 0.3, y: 0, blur: 10 }, curva: 'blando' });
+    vapor.dibuja(t, A.evapora - 0.2, A.desaparece + 0.5);
+    X.anima($('cruz'), t, { entra: A.desaparece, dur: 0.55, sale: A.olor + 0.9, desde: { s: 0.3, y: 0, blur: 10 }, curva: 'blando' });
+    gasLibre.dibuja(t, A.desaparece + 0.1, A.pelos - 0.2);
+    olorSale.dibuja(t, -1, A.debajo + 0.2);
+    // callouts
+    X.anima($('cSifon'), t, { entra: A.sifon, dur: 0.6, sale: A.tapon - 0.2, desde: { x: 60, y: 0, blur: 14, s: 0.9 }, curva: 'blando' });
+    X.anima($('cSello'), t, { entra: A.tapon, dur: 0.6, sale: A.gases - 0.1, desde: { x: -60, y: 0, blur: 14, s: 0.9 }, curva: 'blando' });
+    X.anima($('cGas'), t, { entra: A.gases + 0.1, dur: 0.6, sale: A.semanas - 0.2, desde: { x: 60, y: 0, blur: 14, s: 0.9 }, curva: 'blando' });
+    X.anima($('eSemanas'), t, { entra: A.semanas, dur: 0.6, sale: A.olor + 0.6, desde: { y: -30, blur: 12 }, curva: 'firme', mueve: { x: -0 } });
+    // suciedad que se pudre (y se va con el agua del grifo)
+    const su = (t < A.pelos ? 0 : X.C.firme((t - A.pelos) / 1.0)) * (1 - X.C.inOut(X.seg(t, A.grifo + 0.5, A.grifo + 1.8)));
+    manchas.forEach((m, i) => { const k = X.limita(su * 1.7 - i * 0.04); m.c.style.opacity = k.toFixed(3); m.c.setAttribute('transform', `translate(0 ${(3 * Math.sin(t * 1.5 + m.f)).toFixed(2)})`); });
+    burbujas.dibuja(t, A.pudre - 0.1, A.solucion);
+    X.anima($('eSucio'), t, { entra: A.pelos, dur: 0.6, sale: A.solucion - 0.3, desde: { y: -30, blur: 12 }, curva: 'firme' });
+    // solución: el mando gira, sale el chorro (ondulado) y la tarjeta
+    const g = t < A.grifo - 0.2 ? 0 : X.C.blando((t - (A.grifo - 0.2)) / 0.6);
+    $('mando').setAttribute('transform', `rotate(${(-28 * g).toFixed(2)} 600 449)`);
+    const caida = X.limita((t - A.grifo) / 0.35);
+    if (t > A.grifo) { let d = 'M462 384'; const yb = 384 + 300 * caida; for (let y = 384; y <= yb; y += 20) d += ` L${(462 + 3 * Math.sin(y / 18 + t * 9)).toFixed(1)} ${y}`; for (let y = yb; y >= 384; y -= 20) d += ` L${(478 + 3 * Math.sin(y / 18 + t * 9 + 1)).toFixed(1)} ${y}`;
+      $('chorro').setAttribute('d', d + ' Z'); $('chorro').style.opacity = '.92'; } else $('chorro').style.opacity = '0';
+    X.anima($('solucion'), t, { entra: A.solucion + 0.1, dur: 0.75, desde: { y: -50, blur: 20, s: 0.94 }, curva: 'firme' });
+    X.anima($('f1'), t, { entra: A.grifo - 0.2, dur: 0.55, desde: { x: -40, y: 0, blur: 12 }, curva: 'blando' });
+    X.anima($('f2'), t, { entra: A.limpia - 0.1, dur: 0.55, desde: { x: -40, y: 0, blur: 12 }, curva: 'blando' });
+    subs.dibuja(t);
+  };
+});
+</script></body></html>

@@ -1,0 +1,419 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><title>Gripe cada año</title>
+<link rel="stylesheet" href="motor/explica.css">
+<script src="voz/timeline.js"></script>
+<script src="motor/explica.js"></script>
+<script src="motor/materiales.js"></script>
+<style>
+  :root { --acento: #FF8466; --frio: #7FD8FF; --lila: #A99BFF; }
+  #lienzo { background: radial-gradient(1100px 1000px at 50% 40%, #1B1F48 0%, #080A1A 78%); }
+  .tag { font-family: 'Bricolage'; font-weight: 700; font-size: 58px; fill: var(--linea); letter-spacing: -1px; }
+  .tagp { font-family: 'Mono'; font-weight: 700; font-size: 30px; fill: rgba(225,230,255,.6); letter-spacing: 3px; }
+  .fila-c { position: absolute; left: 0; right: 0; display: flex; justify-content: center; pointer-events: none; }
+  .callout { padding: 16px 28px 16px 22px; border-radius: 22px; background: rgba(14,16,40,.74); backdrop-filter: blur(8px);
+    border: 2px solid rgba(190,200,255,.18); font-family: 'Bricolage'; font-weight: 700; font-size: 62px; letter-spacing: -1px; white-space: nowrap;
+    box-shadow: 0 22px 50px -14px rgba(0,0,0,.75), inset 0 1px 0 rgba(255,255,255,.12); display: flex; align-items: center; gap: 18px; color: #F4F2FF; }
+  .callout small { font-family: 'Mono'; font-size: 26px; letter-spacing: 3px; color: rgba(225,230,255,.55); display: block; font-weight: 700; margin-bottom: 2px; }
+  .callout .ico { width: 74px; height: 74px; flex: none; }
+  .pill { padding: 16px 32px; border-radius: 999px; font-family: 'Mono'; font-weight: 700; font-size: 38px; letter-spacing: 3px; white-space: nowrap;
+    box-shadow: 0 14px 34px -10px rgba(0,0,0,.65); }
+  .titular { text-shadow: 0 10px 40px rgba(0,0,0,.65); }
+  .gen { display: flex; gap: 10px; margin-top: 8px; }
+  .gen span { font-family: 'Mono'; font-size: 60px; width: 62px; height: 78px; border-radius: 12px; display: flex; align-items: center; justify-content: center;
+    background: rgba(127,216,255,.12); color: #CFEFFF; border: 2px solid rgba(127,216,255,.25); }
+  .gen span.mal { background: rgba(255,90,95,.25); color: #FF9B9E; border-color: #FF5A5F; box-shadow: 0 0 24px rgba(255,90,95,.5); }
+  .deriva { font-family: 'Bricolage'; font-weight: 700; font-size: 124px; line-height: .95; letter-spacing: -3px; text-align: center; color: #fff; padding: 34px 50px 40px;
+    border-radius: 36px; background: linear-gradient(160deg, rgba(120,46,50,.92), rgba(48,30,120,.92)); backdrop-filter: blur(10px); border: 2px solid rgba(255,180,160,.45);
+    box-shadow: 0 40px 90px -20px rgba(0,0,0,.8), inset 0 1px 0 rgba(255,255,255,.25); }
+  .deriva small { display: block; font-family: 'Mono'; font-size: 32px; letter-spacing: 6px; color: #FFD2C4; margin-bottom: 26px; line-height: 1; }
+  .meses { display: flex; gap: 10px; }
+  .meses span { font-family: 'Mono'; font-weight: 700; font-size: 40px; width: 64px; height: 76px; border-radius: 14px; display: flex; align-items: center; justify-content: center;
+    background: rgba(20,22,52,.8); border: 2px solid rgba(190,200,255,.16); color: rgba(225,230,255,.5); }
+  .meses span.on { background: var(--acento); color: #1A0E0A; border-color: #FFC2B0; box-shadow: 0 0 30px rgba(255,132,102,.7); }
+  #tinte { position: absolute; inset: 0; pointer-events: none; z-index: 30; opacity: 0;
+    background: radial-gradient(900px 1100px at 50% 45%, rgba(255,110,90,.35), rgba(120,60,200,.25) 60%, rgba(0,0,0,0) 100%); mix-blend-mode: screen; }
+</style></head>
+<body><div id="lienzo">
+  <svg id="mundo-svg" viewBox="0 0 1080 1920">
+    <defs>
+      <radialGradient id="gVirus" cx=".38" cy=".32" r=".8"><stop offset="0" stop-color="#9C8CFF"/><stop offset=".55" stop-color="#5B48C9"/><stop offset="1" stop-color="#231A66"/></radialGradient>
+      <radialGradient id="gHalo"><stop offset="0" stop-color="#6E7CFF" stop-opacity=".55"/><stop offset="1" stop-color="#6E7CFF" stop-opacity="0"/></radialGradient>
+      <radialGradient id="gHaloC"><stop offset="0" stop-color="#FF8466" stop-opacity=".6"/><stop offset="1" stop-color="#FF8466" stop-opacity="0"/></radialGradient>
+      <radialGradient id="gCelula" cx=".5" cy=".4" r=".6"><stop offset="0" stop-color="#4C63C9" stop-opacity=".55"/><stop offset=".8" stop-color="#2B3487" stop-opacity=".35"/><stop offset="1" stop-color="#9FB2FF" stop-opacity=".5"/></radialGradient>
+      <linearGradient id="gCito" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#2A3478" stop-opacity=".9"/><stop offset="1" stop-color="#0C1030" stop-opacity="1"/></linearGradient>
+      <linearGradient id="gMemb" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#BFE9FF" stop-opacity=".85"/><stop offset=".25" stop-color="#6FB9F0" stop-opacity=".55"/><stop offset=".75" stop-color="#5A7FE0" stop-opacity=".45"/><stop offset="1" stop-color="#B7C6FF" stop-opacity=".7"/></linearGradient>
+      <linearGradient id="gAnti" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#D8F6FF"/><stop offset=".5" stop-color="#7FD8FF"/><stop offset="1" stop-color="#3A8FD0"/></linearGradient>
+      <linearGradient id="gLlave" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#FFC1A8"/><stop offset=".5" stop-color="#FF8466"/><stop offset="1" stop-color="#C9493A"/></linearGradient>
+      <linearGradient id="gOceano" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#6FA8FF"/><stop offset=".5" stop-color="#2D5BD8"/><stop offset="1" stop-color="#101C5A"/></linearGradient>
+      <linearGradient id="gArea" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#7FD8FF" stop-opacity=".55"/><stop offset="1" stop-color="#7FD8FF" stop-opacity="0"/></linearGradient>
+      <clipPath id="clipGlobo"><circle cx="540" cy="-1050" r="270"/></clipPath>
+      <clipPath id="clipNorte"><rect x="200" y="-1400" width="700" height="350"/></clipPath>
+      <clipPath id="clipSur"><rect x="200" y="-1050" width="700" height="350"/></clipPath>
+    </defs>
+    <g id="cam">
+      <g id="contenido">
+        <g id="fondo"><rect x="-1400" y="-2600" width="5000" height="6000" fill="#0B0E26"/><g id="celulasFondo"></g></g>
+        <!-- ZONA A · membrana de la célula -->
+        <g id="celula">
+          <rect x="-1400" y="1330" width="4200" height="1600" fill="url(#gCito)"/>
+          <g id="organulos" opacity=".55"></g>
+          <path id="memb" fill="url(#gMemb)" filter="url(#m-cristal)" d=""/>
+          <path id="membLuz" fill="none" stroke="#E6F7FF" stroke-width="4" opacity=".7" d=""/>
+          <path id="membRoja" fill="none" stroke="#FF5A5F" stroke-width="16" opacity="0" filter="url(#f-brillo)" d=""/>
+          <g id="receptores"></g>
+        </g>
+        <!-- ZONA A · el virus -->
+        <g id="virusPos">
+          <circle cx="540" cy="760" r="440" fill="url(#gHalo)"/>
+          <circle id="haloC" cx="540" cy="760" r="470" fill="url(#gHaloC)" opacity="0"/>
+          <g id="espigas" filter="url(#m-organico)"></g>
+          <circle cx="540" cy="760" r="252" fill="url(#gVirus)" filter="url(#m-organico)"/>
+          <g id="poros"></g>
+          <circle cx="540" cy="760" r="246" fill="none" stroke="#C4BAFF" stroke-width="8" opacity=".35"/>
+          <ellipse cx="460" cy="660" rx="110" ry="70" fill="#fff" opacity=".13" filter="url(#f-blando)"/>
+          <g id="antisA"></g>
+        </g>
+        <!-- jeringa de cristal -->
+        <g transform="translate(925 600) rotate(-16) scale(.74)"><g id="jeringa">
+          <rect x="0" y="-4" width="140" height="8" rx="3" fill="url(#g-cromo)" filter="url(#m-metal)"/>
+          <rect x="130" y="-18" width="46" height="36" rx="6" fill="#C9D3E6" filter="url(#m-plastico)"/>
+          <rect id="jLiq" x="180" y="-40" width="300" height="80" rx="10" fill="url(#g-agua)" opacity=".85"/>
+          <g id="jEmbolo"><rect x="0" y="-42" width="24" height="84" rx="6" fill="#2B2F3A"/><rect x="24" y="-12" width="440" height="24" rx="6" fill="#E3E8F2" filter="url(#m-plastico)"/><rect x="460" y="-62" width="22" height="124" rx="8" fill="#E3E8F2" filter="url(#m-plastico)"/></g>
+          <rect x="172" y="-52" width="400" height="104" rx="18" fill="rgba(200,225,255,.16)" stroke="rgba(235,245,255,.6)" stroke-width="4" filter="url(#m-cristal)"/>
+          <g id="jMarcas" stroke="rgba(255,255,255,.55)" stroke-width="3"></g>
+          <rect x="196" y="-42" width="350" height="9" rx="4" fill="#fff" opacity=".45"/>
+          <rect x="566" y="-86" width="22" height="172" rx="8" fill="rgba(220,235,255,.5)" stroke="rgba(255,255,255,.6)" stroke-width="3"/>
+        </g></g>
+        <!-- ZONA D · llave y cerradura en grande -->
+        <g id="zonaD">
+          <circle cx="2000" cy="1000" r="620" fill="url(#gHalo)" opacity=".7"/>
+          <circle cx="2000" cy="2420" r="1170" fill="url(#gVirus)" filter="url(#m-organico)"/>
+          <circle cx="2000" cy="2420" r="1162" fill="none" stroke="#C4BAFF" stroke-width="10" opacity=".35"/>
+          <g id="espigasD" filter="url(#m-organico)"></g>
+          <g id="anticuerpoD"><g id="antiDin">
+            <path d="M1820 720 L2000 560 L2180 720" fill="none" stroke="url(#gAnti)" stroke-width="74" stroke-linecap="round" stroke-linejoin="round" filter="url(#m-plastico)"/>
+            <path d="M2000 580 L2000 300" fill="none" stroke="url(#gAnti)" stroke-width="84" stroke-linecap="round" filter="url(#m-plastico)"/>
+            <g id="cerrI"></g><g id="cerrD"></g>
+          </g></g>
+          <g id="ondasD"></g>
+        </g>
+        <!-- ZONA E · la OMS y los hemisferios -->
+        <g id="zonaE">
+          <circle cx="540" cy="-1050" r="430" fill="url(#gHalo)"/>
+          <circle cx="540" cy="-1050" r="270" fill="url(#gOceano)" filter="url(#m-relieve)"/>
+          <g clip-path="url(#clipGlobo)" fill="none" stroke="rgba(220,235,255,.35)" stroke-width="3" id="rejGlobo"></g>
+          <g clip-path="url(#clipGlobo)" fill="#3FB58A" opacity=".75" filter="url(#m-tierra)">
+            <path d="M330 -1250 C380 -1300 470 -1290 500 -1240 C540 -1200 500 -1160 450 -1150 C420 -1100 380 -1110 360 -1160 C320 -1180 300 -1220 330 -1250 Z"/>
+            <path d="M560 -1290 C620 -1320 720 -1300 760 -1250 C790 -1200 740 -1170 700 -1180 C660 -1150 600 -1170 590 -1210 C560 -1230 540 -1270 560 -1290 Z"/>
+            <path d="M440 -1010 C480 -1020 520 -990 510 -930 C500 -870 470 -830 450 -840 C430 -880 420 -940 440 -1010 Z"/>
+            <path d="M620 -1080 C670 -1100 720 -1060 700 -1000 C690 -950 650 -930 630 -960 C610 -1000 600 -1050 620 -1080 Z"/>
+            <path d="M690 -880 C730 -890 760 -860 740 -830 C720 -810 690 -820 690 -880 Z"/></g>
+          <g clip-path="url(#clipGlobo)"><rect id="hNorte" x="200" y="-1400" width="700" height="350" fill="#FF8466" opacity="0"/><rect id="hSur" x="200" y="-1050" width="700" height="350" fill="#FF8466" opacity="0"/></g>
+          <line x1="250" y1="-1050" x2="830" y2="-1050" stroke="#FF8466" stroke-width="6" stroke-dasharray="18 12"/>
+          <ellipse cx="455" cy="-1170" rx="90" ry="50" fill="#fff" opacity=".18" filter="url(#f-blando)"/>
+          <circle cx="540" cy="-1050" r="270" fill="none" stroke="rgba(230,240,255,.5)" stroke-width="5"/>
+          <g id="etiN"><text class="tag" x="540" y="-1352" text-anchor="middle">NORTE</text><text class="tagp" x="540" y="-1410" text-anchor="middle">FEBRERO</text></g>
+          <g id="etiS"><text class="tag" x="540" y="-702" text-anchor="middle" dy="10">SUR</text><text class="tagp" x="540" y="-640" text-anchor="middle">SEPTIEMBRE</text></g>
+        </g>
+        <!-- ZONA F · la protección baja -->
+        <g id="zonaF">
+          <rect x="1600" y="-1370" width="800" height="680" rx="40" fill="rgba(150,175,255,.12)" stroke="rgba(220,230,255,.35)" stroke-width="4" filter="url(#m-cristal)"/>
+          <line x1="1680" y1="-790" x2="2330" y2="-790" stroke="rgba(225,230,255,.5)" stroke-width="4"/>
+          <line x1="1680" y1="-1290" x2="1680" y2="-790" stroke="rgba(225,230,255,.5)" stroke-width="4"/>
+          <text class="tagp" x="1700" y="-1300">PROTECCIÓN</text>
+          <g id="ticks"></g>
+          <path id="area" fill="url(#gArea)" d=""/>
+          <path id="curva" fill="none" stroke="#7FD8FF" stroke-width="10" stroke-linecap="round" filter="url(#f-brillo)" d=""/>
+          <g id="ysF"></g>
+          <circle id="punto" r="20" fill="#FF8466" filter="url(#f-brillo)"/>
+        </g>
+      </g>
+      <g id="capaLupa"></g>
+      <g id="ondasA"></g>
+    </g>
+  </svg>
+
+  <div id="tinte"></div>
+  <div id="titular" class="titular" style="top:160px">¿Vacunarse de gripe <em>cada año</em>?</div>
+  <div class="fila-c" style="top:410px"><div id="cAnio" class="callout">
+    <svg class="ico" viewBox="0 0 74 74"><rect x="6" y="12" width="62" height="56" rx="10" fill="#EEF0FF"/><rect x="6" y="12" width="62" height="18" rx="8" fill="#FF8466"/><rect x="18" y="4" width="8" height="16" rx="4" fill="#C9CCE8"/><rect x="48" y="4" width="8" height="16" rx="4" fill="#C9CCE8"/><path d="M22 48 L32 57 L52 38" fill="none" stroke="#2FBF7A" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    <div><small>EL AÑO PASADO</small>YA ME VACUNÉ</div></div></div>
+  <div class="fila-c" style="top:150px"><div id="cLlave" class="callout">
+    <svg class="ico" viewBox="0 0 74 74"><circle cx="22" cy="37" r="15" fill="none" stroke="#FF8466" stroke-width="8"/><path d="M36 37 H68 M58 37 V50 M48 37 V47" stroke="#FF8466" stroke-width="8" stroke-linecap="round"/></svg>
+    <div><small>HEMAGLUTININA</small>LA LLAVE</div></div></div>
+  <div class="fila-c" style="top:1190px"><div id="cCelula" class="callout" style="font-size:54px"><div><small>ENTRA EN</small>TU CÉLULA</div></div></div>
+  <div class="fila-c" style="top:250px"><div id="cAnti" class="callout">
+    <svg class="ico" viewBox="0 0 74 74"><path d="M37 68 V38 M37 38 L16 10 M37 38 L58 10" fill="none" stroke="#7FD8FF" stroke-width="10" stroke-linecap="round"/></svg>
+    <div><small>ANTICUERPO</small>LA CERRADURA</div></div></div>
+  <div class="fila-c" style="top:220px"><div id="pEncaja" class="pill" style="background:rgba(91,228,155,.16);border:2px solid var(--ok);color:#9BF3C4">✓ ENCAJA</div></div>
+  <div class="fila-c" style="top:200px"><div id="cGen" class="callout" style="flex-direction:column;align-items:flex-start;gap:4px"><small>EL GEN DE LA LLAVE</small>
+    <div class="gen" id="gen"><span>A</span><span>U</span><span>G</span><span>G</span><span>C</span><span>A</span><span>U</span><span>C</span></div></div></div>
+  <div class="fila-c" style="top:230px"><div id="cDeriva" class="deriva"><small>SE LLAMA</small>DERIVA<br>ANTIGÉNICA</div></div>
+  <div class="fila-c" style="top:220px"><div id="pNo" class="pill" style="background:rgba(255,90,95,.18);border:2px solid var(--peligro);color:#FF9B9E">✗ YA NO ENCAJA</div></div>
+  <div class="fila-c" style="top:1190px"><div id="pOtra" class="pill" style="background:rgba(255,90,95,.18);border:2px solid var(--peligro);color:#FF9B9E">OTRA VEZ GRIPE</div></div>
+  <div class="fila-c" style="top:200px"><div id="cOMS" class="callout"><div><small>LA OMS REVISA</small>LA VACUNA</div></div></div>
+  <div class="fila-c" style="top:210px"><div id="meses" class="meses"><span>E</span><span>F</span><span>M</span><span>A</span><span>M</span><span>J</span><span>J</span><span>A</span><span>S</span><span>O</span><span>N</span><span>D</span></div></div>
+  <div class="fila-c" style="top:250px"><div id="pMes" class="pill" style="background:rgba(14,16,40,.8);border:2px solid rgba(127,216,255,.45);color:#CFEFFF">MES <span id="nMes">0</span></div></div>
+  <div class="fila-c" style="top:200px"><div id="cNueva" class="callout"><svg class="ico" viewBox="0 0 74 74"><circle cx="22" cy="37" r="15" fill="none" stroke="#FF8466" stroke-width="8"/><path d="M36 37 H68 M58 37 V50 M48 37 V47" stroke="#FF8466" stroke-width="8" stroke-linecap="round"/></svg><div><small>CADA AÑO</small>LLAVE NUEVA</div></div></div>
+  <div class="fila-c" style="top:350px"><div id="cNueva2" class="callout"><svg class="ico" viewBox="0 0 74 74"><path d="M37 68 V38 M37 38 L16 10 M37 38 L58 10" fill="none" stroke="#7FD8FF" stroke-width="10" stroke-linecap="round"/></svg><div><small>Y VACUNA NUEVA</small>CERRADURA NUEVA</div></div></div>
+  <div id="subs"></div>
+  <div id="barra" class="progreso"></div>
+</div>
+<script>
+X.listo(() => {
+  const $ = (id) => document.getElementById(id), NS = 'http://www.w3.org/2000/svg';
+  const el = (tag, at, padre) => { const e = document.createElementNS(NS, tag); for (const k in at) e.setAttribute(k, at[k]); if (padre) padre.appendChild(e); return e; };
+  const svg = $('mundo-svg');
+  X.defs(svg); X.materiales(svg);
+  const az = X.azar(7);
+
+  // ---------- anclas ----------
+  const A = {
+    cada: X.debe(X.en('cada año'), 'cada año'), si: X.debe(X.en('Si ya'), 'Si ya'), mira: X.debe(X.en('Mira'), 'Mira'),
+    espigas: X.debe(X.en('espigas'), 'espigas'), proteinas: X.debe(X.en('proteínas'), 'proteínas'), llaves: X.debe(X.en('llaves'), 'llaves'),
+    abren: X.debe(X.en('abren'), 'abren'), celulas: X.debe(X.en('células'), 'células'), anti: X.debe(X.en('anticuerpos'), 'anticuerpos'),
+    cerraduras: X.debe(X.en('cerraduras'), 'cerraduras'), forma: X.debe(X.en('forma'), 'forma'), exacta: X.debe(X.en('exacta'), 'exacta'),
+    copiarse: X.debe(X.en('copiarse'), 'copiarse'), errores: X.debe(X.en('errores'), 'errores'), poco: X.debe(X.en('poco'), 'poco'),
+    cambia: X.debe(X.en('cambia'), 'cambia'), forma2: X.debe(X.en('forma', 2), 'forma (2)'), llama: X.debe(X.en('llama'), 'llama'),
+    deriva: X.debe(X.en('deriva'), 'deriva'), anti2: X.debe(X.en('anticuerpos', 2), 'anticuerpos (2)'), encajan: X.debe(X.en('encajan'), 'encajan'),
+    volver: X.debe(X.en('volver'), 'volver'), contagiarte: X.debe(X.en('contagiarte'), 'contagiarte'), oms: X.debe(X.en('OMS'), 'OMS'),
+    revisa: X.debe(X.en('revisa'), 'revisa'), dos: X.debe(X.en('dos veces'), 'dos veces'), veces: X.debe(X.en('veces'), 'veces'),
+    una: X.debe(X.en('una para'), 'una para'), hemisferio: X.debe(X.en('hemisferio'), 'hemisferio'), hay: X.debe(X.en('hay más'), 'hay más'),
+    proteccion: X.debe(X.en('protección'), 'protección'), baja: X.debe(X.en('baja'), 'baja'), meses: X.debe(X.en('meses'), 'meses'),
+    asi: X.debe(X.en('Así que'), 'Así que'), llaveN: X.debe(X.en('llave nueva'), 'llave nueva'), cerrN: X.debe(X.en('cerradura nueva'), 'cerradura nueva'),
+  };
+  const fin = X.dur;
+
+  // ---------- la llave: perfil de 4 escalones (y negativas = altura). Deriva: H0 → H1 escalón a escalón ----------
+  const H0 = [-96, -86, -100, -90], H1 = [-87, -101, -84, -98];
+  const tMut = [A.errores, A.poco, A.cambia, A.forma2];
+  const perfil = (t) => H0.map((h, i) => X.lerp(h, H1[i], t < tMut[i] ? 0 : X.C.blando((t - tMut[i]) / 0.55)));
+  const cabeza = (h) => `M-26 -56 L-26 ${h[0].toFixed(1)} L-13 ${h[0].toFixed(1)} L-13 ${h[1].toFixed(1)} L0 ${h[1].toFixed(1)} L0 ${h[2].toFixed(1)} L13 ${h[2].toFixed(1)} L13 ${h[3].toFixed(1)} L26 ${h[3].toFixed(1)} L26 -56 Q26 -50 20 -50 L-20 -50 Q-26 -50 -26 -56 Z`;
+  const cerr = `M-34 -175 Q-34 -186 -22 -186 L22 -186 Q34 -186 34 -175 L34 ${H0[3]} L13 ${H0[3]} L13 ${H0[2]} L0 ${H0[2]} L0 ${H0[1]} L-13 ${H0[1]} L-13 ${H0[0]} L-34 ${H0[0]} Z`;
+  const mezcla = (a, b, u) => { const p = (c) => [1, 3, 5].map((i) => parseInt(c.slice(i, i + 2), 16)); const A_ = p(a), B = p(b); return `rgb(${A_.map((v, i) => Math.round(X.lerp(v, B[i], u))).join(',')})`; };
+
+  // ---------- fondo: células lejanas desenfocadas ----------
+  for (let i = 0; i < 46; i++) {
+    const x = -1300 + az() * 4800, y = -2500 + az() * 5600, r = 70 + az() * 230;
+    el('circle', { cx: x, cy: y, r, fill: 'url(#gCelula)', opacity: (0.25 + az() * 0.4).toFixed(2) }, $('celulasFondo'));
+    el('circle', { cx: x + r * 0.15, cy: y - r * 0.1, r: r * 0.32, fill: '#3A3FA0', opacity: (0.35 + az() * 0.3).toFixed(2) }, $('celulasFondo'));
+  }
+  for (let i = 0; i < 60; i++) el('circle', { cx: -1300 + az() * 4800, cy: -2500 + az() * 5600, r: 3 + az() * 7, fill: '#9FB4FF', opacity: (0.15 + az() * 0.3).toFixed(2) }, $('celulasFondo'));
+  // orgánulos dentro de la célula
+  el('ellipse', { cx: 560, cy: 2050, rx: 420, ry: 300, fill: '#3C3E9E', opacity: .7, filter: 'url(#m-organico)' }, $('organulos'));
+  el('ellipse', { cx: 520, cy: 2020, rx: 140, ry: 110, fill: '#6A5BD0', opacity: .6 }, $('organulos'));
+  for (let i = 0; i < 14; i++) el('ellipse', { cx: -300 + az() * 1700, cy: 1480 + az() * 300, rx: 24 + az() * 40, ry: 14 + az() * 18, fill: i % 2 ? '#5A7FE0' : '#7B6BE8', opacity: .5 }, $('organulos'));
+
+  // ---------- espigas del virus (zona A) ----------
+  const CX = 540, CY = 760, haA = [];
+  for (let i = 0; i < 24; i++) {
+    const g = el('g', { transform: `rotate(${i * 15} ${CX} ${CY}) translate(${CX} ${CY - 246})` }, $('espigas'));
+    if (i % 3 === 2) {
+      el('rect', { x: -4, y: -62, width: 8, height: 66, rx: 4, fill: '#8F86D8' }, g);
+      [[-11, -70], [11, -70], [-11, -88], [11, -88]].forEach(([x, y]) => el('circle', { cx: x, cy: y, r: 11, fill: '#C2B6FF' }, g));
+    } else {
+      el('rect', { x: -7, y: -56, width: 14, height: 60, rx: 5, fill: '#7E76D6' }, g);
+      haA.push({ p: el('path', { d: cabeza(H0), fill: '#9AA6FF', stroke: '#9AA6FF', 'stroke-width': 5, 'stroke-linejoin': 'round' }, g), i });
+    }
+  }
+  for (let i = 0; i < 26; i++) { const a = az() * 6.283, r = Math.sqrt(az()) * 220; el('circle', { cx: CX + r * Math.cos(a), cy: CY + r * Math.sin(a), r: 5 + az() * 9, fill: '#2A1F75', opacity: .45 }, $('poros')); }
+  // anticuerpos pequeños que abrazan las llaves
+  const antisA = [1, 4, 9, 12, 16, 21].map((i, k) => {
+    const g = el('g', {}, $('antisA')), gi = el('g', {}, g);
+    el('path', { d: 'M0 0 V-34 M0 -34 L-30 -68 M0 -34 L30 -68', fill: 'none', stroke: 'url(#gAnti)', 'stroke-width': 15, 'stroke-linecap': 'round', 'stroke-linejoin': 'round' }, gi);
+    return { g, a: i * 15, k };
+  });
+  // marcas de la jeringa
+  for (let x = 210; x < 560; x += 35) el('line', { x1: x, y1: 52, x2: x, y2: (x / 35) % 2 ? 30 : 20 }, $('jMarcas'));
+
+  // ---------- membrana con receptores ----------
+  const recs = [];
+  for (let x = -560; x <= 1640; x += 64) { const g = el('g', {}, $('receptores'));
+    el('path', { d: 'M0 0 V-22', fill: 'none', stroke: '#BFE9FF', 'stroke-width': 6, 'stroke-linecap': 'round' }, g);
+    el('circle', { cx: 0, cy: -27, r: 8, fill: '#FFD27A' }, g); el('circle', { cx: 6, cy: -41, r: 6, fill: '#FFB85A' }, g); recs.push({ g, x }); }
+  const membY = (x, t, hund) => 1300 + 7 * Math.sin(x / 140 + t * 1.3) + 4 * Math.sin(x / 63 - t * 2.1) + hund * 46 * Math.exp(-((x - CX) ** 2) / (2 * 95 * 95));
+
+  // ---------- zona D: llaves grandes y cerraduras ----------
+  const S = 3.2, KD = [1820, 2180], BASE = 1262, keysD = [];
+  KD.forEach((x) => { const g = el('g', { transform: `translate(${x} ${BASE}) scale(${S})` }, $('espigasD'));
+    el('rect', { x: -8, y: -56, width: 16, height: 60, rx: 5, fill: '#B65A55' }, g);
+    keysD.push(el('path', { d: cabeza(H0), fill: 'url(#gLlave)', stroke: '#FF9A7E', 'stroke-width': 3, 'stroke-linejoin': 'round' }, g)); });
+  [1440, 1590, 2410, 2560].forEach((x, k) => { const g = el('g', { transform: `translate(${x} ${BASE + (Math.abs(x - 2000) - 180) * 0.13}) rotate(${(x - 2000) * 0.03}) scale(${S * 0.9})` }, $('espigasD'));
+    if (k % 3 === 1) { el('rect', { x: -4, y: -62, width: 8, height: 66, rx: 4, fill: '#8F86D8' }, g); [[-11, -70], [11, -70], [-11, -88], [11, -88]].forEach(([cx, cy]) => el('circle', { cx, cy, r: 11, fill: '#C2B6FF' }, g)); }
+    else { el('rect', { x: -7, y: -56, width: 14, height: 60, rx: 5, fill: '#7E76D6' }, g); el('path', { d: cabeza(H0), fill: '#9AA6FF' }, g); } });
+  [['cerrI', 1820], ['cerrD', 2180]].forEach(([id, x]) => { const g = el('g', { transform: `translate(${x} ${BASE}) scale(${S})` }, $(id));
+    el('path', { d: cerr, fill: 'url(#gAnti)', stroke: '#D8F6FF', 'stroke-width': 2.5, 'stroke-linejoin': 'round', filter: 'url(#m-plastico)' }, g); });
+  const ondaD1 = X.onda($('ondasD'), { x: 2000, y: 940, color: '#5BE49B', radio: 380, ancho: 14 });
+  const ondaD2 = X.onda($('ondasD'), { x: 2000, y: 940, color: '#FF5A5F', radio: 400, ancho: 16 });
+  const ondaMut = X.onda($('ondasD'), { x: 1820, y: 950, color: '#FF8466', radio: 260, ancho: 10 });
+  const ondaMut2 = X.onda($('ondasD'), { x: 2180, y: 950, color: '#FF8466', radio: 260, ancho: 10 });
+  const ondaDock = X.onda($('ondasA'), { x: CX, y: 1300, color: '#7FD8FF', radio: 300, ancho: 12 });
+  const ondaDock2 = X.onda($('ondasA'), { x: CX, y: 1300, color: '#FF5A5F', radio: 340, ancho: 14 });
+  const ondaHook = X.onda($('ondasA'), { x: CX, y: CY, color: '#FF8466', radio: 520, ancho: 10 });
+  const ondaFin = X.onda($('ondasA'), { x: CX, y: CY, color: '#5BE49B', radio: 560, ancho: 14 });
+
+  // ---------- zona E: rejilla del globo ----------
+  for (let k = -2; k <= 2; k++) el('ellipse', { cx: 540, cy: -1050, rx: Math.abs(k) * 70 + 0.5, ry: 270 }, $('rejGlobo'));
+  [-180, -90, 90, 180].forEach((dy) => { const w = Math.sqrt(270 * 270 - dy * dy); el('line', { x1: 540 - w, y1: -1050 + dy, x2: 540 + w, y2: -1050 + dy }, $('rejGlobo')); });
+
+  // ---------- zona F: gráfica ----------
+  const cx_ = (u) => 1690 + 620 * u, cy_ = (u) => -1235 + 420 * Math.pow(u, 1.25);
+  let dC = ''; for (let i = 0; i <= 40; i++) { const u = i / 40; dC += (i ? ' L' : 'M') + cx_(u).toFixed(1) + ' ' + cy_(u).toFixed(1); }
+  $('curva').setAttribute('d', dC); $('area').setAttribute('d', dC + ` L${cx_(1)} -790 L${cx_(0)} -790 Z`);
+  for (let m = 0; m <= 6; m++) { const x = cx_(m / 6); el('line', { x1: x, y1: -790, x2: x, y2: -772, stroke: 'rgba(225,230,255,.5)', 'stroke-width': 4 }, $('ticks')); const tx = el('text', { class: 'tagp', x, y: -738, 'text-anchor': 'middle' }, $('ticks')); tx.textContent = m; }
+  const tM = el('text', { class: 'tagp', x: 2330, y: -1300, 'text-anchor': 'end' }, $('ticks')); tM.textContent = 'MESES →';
+  const ysF = []; for (let m = 0; m <= 6; m++) { const n = Math.max(1, 5 - Math.round(m * 0.7)); for (let j = 0; j < n; j++) { const g = el('g', { transform: `translate(${cx_(m / 6)} ${-820 - j * 52}) scale(.62)` }, $('ysF'));
+    el('path', { d: 'M0 0 V-34 M0 -34 L-28 -66 M0 -34 L28 -66', fill: 'none', stroke: '#7FD8FF', 'stroke-width': 13, 'stroke-linecap': 'round' }, g); ysF.push({ g, m }); } }
+
+  // ---------- lupa ----------
+  const lupa = X.lupa($('capaLupa'), { fuente: '#contenido', r: 120, zoom: 2.6, aro: '#E8ECFF' });
+
+  // ---------- cámara ----------
+  const camaras = [
+    { t: 0, x: 700, y: 845, z: 0.86, rx: 4, ry: -6 },
+    { t: A.mira + 0.25, x: 580, y: 720, z: 1.5, r: -0.8, ry: 8, dur: 1.2 },
+    { t: A.espigas + 0.1, x: 600, y: 600, z: 1.95, r: 0.6, rx: -5, ry: -6, dur: 1.1 },
+    { t: A.abren - 0.1, x: 540, y: 1120, z: 1.12, r: 0, rx: 9, ry: 3, dur: 1.2 },
+    { t: A.anti + 0.15, x: 540, y: 860, z: 0.92, r: -0.5, rx: 2, ry: -8, dur: 1.1 },
+    { t: A.cerraduras + 0.1, x: 2000, y: 880, z: 0.95, r: 0.6, rx: -4, ry: -10, dur: 1.3 },
+    { t: A.forma + 0.1, x: 2000, y: 930, z: 1.22, r: 0, rx: 4, ry: 6, dur: 1.1 },
+    { t: A.copiarse + 0.1, x: 2000, y: 960, z: 1.02, r: -0.6, rx: 7, ry: -4, dur: 1.2 },
+    { t: A.poco, x: 1840, y: 980, z: 1.55, r: 0.8, rx: -4, ry: 12, dur: 1.1 },
+    { t: A.llama + 0.1, x: 2000, y: 960, z: 0.86, r: -1.4, rx: 6, ry: -4, dur: 1.0 },
+    { t: A.anti2 + 0.1, x: 2000, y: 880, z: 1.25, r: 0.4, rx: -3, ry: -9, dur: 1.1 },
+    { t: A.volver + 0.35, x: 540, y: 1040, z: 1.02, r: 0, rx: 7, ry: 5, dur: 1.2 },
+    { t: A.oms, x: 540, y: -1000, z: 0.95, r: -0.6, rx: -6, ry: 0, dur: 1.3 },
+    { t: A.dos, x: 540, y: -980, z: 1.08, r: 0.4, rx: 0, ry: -7, dur: 1.1 },
+    { t: A.una, x: 540, y: -1040, z: 1.0, r: 0, rx: 5, ry: 7, dur: 1.1 },
+    { t: A.hay + 0.1, x: 2000, y: -1010, z: 0.98, r: 0.6, rx: -5, ry: -8, dur: 1.2 },
+    { t: A.baja, x: 2040, y: -990, z: 1.1, r: -0.4, rx: 3, ry: 6, dur: 1.1 },
+    { t: A.asi + 0.05, x: 700, y: 845, z: 0.86, r: 0, rx: 4, ry: -6, dur: 1.2 },
+    { t: A.llaveN, x: 660, y: 820, z: 0.96, r: -0.6, rx: -3, ry: 5, dur: 1.1 },
+    { t: A.cerrN, x: 620, y: 860, z: 0.88, r: 0.3, rx: 4, ry: -6, dur: 1.2 },
+  ];
+  camaras.slice(1).forEach((c) => X.sonido(c.t - (c.dur ?? 1.1) * 0.7, 'whoosh', 0.55));
+  [A.si, A.llaves, A.celulas, A.anti, A.copiarse, A.oms, A.proteccion, A.llaveN, A.cerrN].forEach((t) => X.sonido(t, 'pop', 0.5));
+  X.sonido(0.05, 'swoosh', 0.6); X.sonido(A.cada, 'pop', 0.6); X.sonido(A.espigas, 'click', 0.7);
+  X.sonido(A.exacta, 'notificacion', 0.5); X.sonido(A.encajan, 'feedback', 0.55); X.sonido(A.contagiarte - 0.4, 'feedback', 0.4);
+  tMut.forEach((t) => X.sonido(t, 'click', 0.6)); X.sonido(A.llama, 'swoosh', 0.7); X.sonido(A.dos + 0.1, 'click', 0.6); X.sonido(A.veces + 0.3, 'click', 0.6);
+  X.sonido(A.asi, 'swoosh', 0.6);
+
+  const subs = X.subtitulos($('subs'), { max: 3, y: 1470, claves: ['gripe', 'año', 'virus', 'espigas', 'llaves', 'células', 'cerraduras', 'forma', 'errores', 'cambia', 'deriva', 'antigénica', 'encajan', 'contagiarte', 'OMS', 'vacuna', 'dos', 'hemisferio', 'protección', 'meses', 'nueva'] });
+  const grano = X.grano($('lienzo'), 0.07);
+  const pp1 = X.primerPlano($('lienzo'), { n: 7, tipo: 'bokeh', color: '#9DB4FF', semilla: 31, prof: [1.7, 2.4], blur: [22, 38], op: [0.1, 0.24] });
+  const pp2 = X.primerPlano($('lienzo'), { n: 4, semilla: 44, prof: [2.2, 3.0], blur: [14, 24], op: [0.3, 0.45], tipo: (g, i) => {
+    g.innerHTML = i % 2 ? '<path d="M0 60 V0 M0 0 L-46 -56 M0 0 L46 -56" fill="none" stroke="#7FD8FF" stroke-width="26" stroke-linecap="round"/>'
+      : '<circle r="70" fill="#6B5BD6"/>' + Array.from({ length: 10 }, (_, k) => `<rect x="-7" y="-102" width="14" height="34" rx="6" fill="#A99BFF" transform="rotate(${k * 36})"/>`).join(''); } });
+  const destD = X.destello($('cDeriva')), destT = X.destello($('titular')), destN = X.destello($('cNueva2'));
+  const genSpans = [...$('gen').children], genMut = [[2, 'C'], [5, 'G'], [7, 'A'], [0, 'G']];
+  const meses = [...$('meses').children];
+  const cam = $('cam');
+  const ent = (t, a) => (t < a ? 0 : 1);
+
+  return (t) => {
+    X.camara(cam, t, camaras);
+    X.profundidad($('fondo'), 0.6);
+    X.desenfoqueFondo($('fondo'), { base: 3, porZoom: 7, max: 14 });
+    pp1(t); pp2(t); grano(t);
+    $('barra').style.width = (100 * t / fin).toFixed(2) + '%';
+    const P = perfil(t), dP = cabeza(P);
+
+    // --- virus: respira, se acerca a la célula en «abren» y en «contagiarte» ---
+    const dock1 = X.C.firme(X.seg(t, A.abren - 0.25, A.abren + 0.55)) * (1 - X.C.inOut(X.seg(t, A.anti - 0.2, A.anti + 0.7)));
+    const dock2 = X.C.firme(X.seg(t, A.volver - 0.1, A.contagiarte + 0.1)) * (1 - X.C.inOut(X.seg(t, A.dos, A.dos + 1)));
+    const dock = Math.max(dock1, dock2), wob = 2.2 * X.ruidoF(t * 0.4, 9);
+    $('virusPos').setAttribute('transform', `translate(${(3 * X.ruidoF(t * 0.5, 3)).toFixed(2)} ${(dock * 192 + 6 * Math.sin(t * 1.4)).toFixed(2)}) rotate(${wob.toFixed(2)} ${CX} ${CY})`);
+    // color de las llaves: lila → coral en «llaves»; más rojo tras la deriva; pulso en «llave nueva»
+    const uC = X.C.suave(X.seg(t, A.llaves - 0.1, A.llaves + 0.5)), uR = X.C.suave(X.seg(t, A.errores, A.forma2 + 0.4));
+    const pulso = Math.exp(-3 * Math.max(0, t - A.llaveN)) * ent(t, A.llaveN);
+    const rgb = (c) => [1, 3, 5].map((i) => parseInt(c.slice(i, i + 2), 16)), c1 = rgb('#9AA6FF'), c2 = rgb('#FF8466'), c3 = rgb('#FF5D6E');
+    const colA = `rgb(${c1.map((v, i) => Math.round(X.lerp(X.lerp(v, c2[i], uC), c3[i], uR * 0.6))).join(',')})`;
+    haA.forEach((h) => { h.p.setAttribute('d', dP); h.p.setAttribute('fill', colA); h.p.setAttribute('stroke', colA); });
+    $('haloC').setAttribute('opacity', (0.5 * uC * (1 - X.seg(t, A.anti, A.anti + 1)) + 0.8 * pulso + 0.35 * X.C.suave(X.seg(t, A.cada, A.cada + 0.4)) * (1 - X.seg(t, A.si, A.mira))).toFixed(3));
+    // anticuerpos pequeños: llegan con «anticuerpos», salen despedidos tras la deriva, vuelven con «cerradura nueva»
+    antisA.forEach((a) => {
+      const llega = t < A.anti + a.k * 0.07 ? 0 : X.C.natural((t - A.anti - a.k * 0.07) / 0.8);
+      const va = X.C.out(X.seg(t, A.volver - 0.3 + a.k * 0.05, A.volver + 0.6));
+      const vuelve = t < A.cerrN - 0.15 + a.k * 0.06 ? 0 : X.C.natural((t - A.cerrN + 0.15 - a.k * 0.06) / 0.8);
+      const R = vuelve > 0 ? X.lerp(760, 420, vuelve) : X.lerp(X.lerp(760, 420, llega), 600, va);
+      const op = vuelve > 0 ? X.limita(vuelve * 2) : X.limita(llega * 2) * (1 - va);
+      const ar = a.a * Math.PI / 180;
+      a.g.setAttribute('transform', `translate(${(CX + R * Math.sin(ar)).toFixed(1)} ${(CY - R * Math.cos(ar)).toFixed(1)}) rotate(${a.a + 180 + (va * 40 * (a.k % 2 ? 1 : -1)) * (vuelve > 0 ? 0 : 1)})`);
+      a.g.setAttribute('opacity', op.toFixed(3));
+    });
+    ondaHook.dibuja(t, A.cada); ondaFin.dibuja(t, A.cerrN + 0.35);
+    // membrana: se hunde al tocarla el virus; roja en el segundo contagio
+    const hund = dock * 0.9; let dT = '', dB = '';
+    for (let i = 0; i <= 60; i++) { const x = -600 + i * 2300 / 60, y = membY(x, t, hund); dT += (i ? ' L' : 'M') + x.toFixed(1) + ' ' + y.toFixed(1); }
+    for (let i = 60; i >= 0; i--) { const x = -600 + i * 2300 / 60; dB += ' L' + x.toFixed(1) + ' ' + (membY(x, t, hund) + 72).toFixed(1); }
+    $('memb').setAttribute('d', dT + dB + ' Z'); $('membLuz').setAttribute('d', dT); $('membRoja').setAttribute('d', dT);
+    $('membRoja').setAttribute('opacity', (0.85 * X.C.suave(X.seg(t, A.contagiarte - 0.5, A.contagiarte)) * (1 - X.seg(t, A.oms, A.oms + 0.6))).toFixed(3));
+    recs.forEach((r) => r.g.setAttribute('transform', `translate(${r.x} ${membY(r.x, t, hund).toFixed(1)})`));
+    ondaDock.dibuja(t, A.abren + 0.2); ondaDock2.dibuja(t, A.contagiarte - 0.45);
+
+    // --- jeringa: al principio y al final (inyecta) ---
+    X.anima($('jeringa'), t, { entra: 0, dur: 0.7, sale: A.mira - 0.1, durSale: 0.5, desde: { x: 260, y: 0, blur: 16, o: 0 }, curva: 'firme' });
+    if (t > A.asi - 0.3) X.anima($('jeringa'), t, { entra: A.asi - 0.2, dur: 0.75, desde: { x: 280, y: 0, blur: 16, o: 0 }, curva: 'firme' });
+    const iny = X.C.inOut(X.seg(t, A.asi + 0.5, A.llaveN + 0.3)) * ent(t, A.asi - 0.3), L = X.lerp(300, 60, iny);
+    $('jLiq').setAttribute('width', L.toFixed(1)); $('jEmbolo').setAttribute('transform', `translate(${(180 + L).toFixed(1)} 0)`);
+
+    // --- textos de la zona A ---
+    X.anima($('titular'), t, { entra: 0, dur: 0.55, sale: A.mira - 0.25, desde: { y: -40, blur: 18, s: 0.94 }, curva: 'firme' });
+    destT.dibuja(t, A.cada - 0.1, 0.8);
+    X.anima($('cAnio'), t, { entra: A.si - 0.05, dur: 0.6, sale: A.mira - 0.1, desde: { y: 30, blur: 14, s: 0.9 }, curva: 'blando' });
+    lupa.dibuja(t, { x: 470, y: 730, mira: [625, 441], z: 2.6, a: X.C.blando(X.seg(t, A.espigas - 0.1, A.espigas + 0.5)) * (1 - X.C.inOut(X.seg(t, A.abren - 0.5, A.abren - 0.1))) });
+    X.anima($('cLlave'), t, { entra: A.llaves - 0.05, dur: 0.6, sale: A.anti - 0.2, desde: { x: -60, y: 0, blur: 14, s: 0.9 }, curva: 'blando' });
+    X.anima($('cCelula'), t, { entra: A.celulas - 0.1, dur: 0.6, sale: A.anti + 0.2, desde: { y: 30, blur: 12, s: 0.9 }, curva: 'blando' });
+    X.anima($('cAnti'), t, { entra: A.anti + 0.1, dur: 0.6, sale: A.forma - 0.1, desde: { x: 60, y: 0, blur: 14, s: 0.9 }, curva: 'blando' });
+
+    // --- zona D: la cerradura baja y encaja; el gen falla; la llave cambia; ya no encaja ---
+    keysD.forEach((k) => k.setAttribute('d', dP));
+    const baja1 = t < A.cerraduras ? 0 : X.C.firme((t - A.cerraduras) / Math.max(0.6, A.exacta - A.cerraduras + 0.1));
+    let gap = X.lerp(320, 0, baja1);
+    gap = X.lerp(gap, 70, X.C.inOut(X.seg(t, A.copiarse + 0.6, A.errores - 0.2)));
+    const baja2 = X.C.inOut(X.seg(t, A.anti2 + 0.15, A.encajan));
+    gap = X.lerp(gap, 14, baja2);
+    if (t > A.encajan) gap = 14 + 46 * X.C.blando((t - A.encajan) / 0.7);
+    const choque = t > A.encajan ? 9 * Math.exp(-6 * (t - A.encajan)) * Math.sin((t - A.encajan) * 40) : 0;
+    $('anticuerpoD').setAttribute('transform', `translate(${choque.toFixed(2)} ${(-gap * S).toFixed(1)})`);
+    X.anima($('antiDin'), t, { entra: A.cerraduras - 0.1, dur: 0.6, desde: { y: -120, blur: 18, o: 0 }, curva: 'firme' });
+    ondaD1.dibuja(t, A.exacta); ondaD2.dibuja(t, A.encajan);
+    ondaMut.dibuja(t, A.errores); ondaMut2.dibuja(t, A.cambia);
+    X.anima($('pEncaja'), t, { entra: A.exacta, dur: 0.55, sale: A.copiarse - 0.15, desde: { y: -30, blur: 12, s: 0.9 }, curva: 'blando' });
+    X.anima($('cGen'), t, { entra: A.copiarse, dur: 0.6, sale: A.llama - 0.25, desde: { y: -30, blur: 12, s: 0.94 }, curva: 'firme' });
+    genSpans.forEach((s) => s.classList.remove('mal')); genMut.forEach(([i, c], k) => { const base = 'AUGGCAUC'[i];
+      if (t >= tMut[k]) { genSpans[i].textContent = c; genSpans[i].classList.add('mal'); } else if (genMut.findIndex((m) => m[0] === i) === k) genSpans[i].textContent = base; });
+    // interruptor de patrón: deriva antigénica
+    const tin = X.C.suave(X.seg(t, A.llama - 0.1, A.llama + 0.3)) * (1 - X.C.suave(X.seg(t, A.anti2 - 0.3, A.anti2 + 0.2)));
+    $('tinte').style.opacity = tin.toFixed(3);
+    X.anima($('cDeriva'), t, { entra: A.llama - 0.05, dur: 0.7, sale: A.anti2 - 0.25, desde: { y: 0, s: 0.6, blur: 22 }, curva: 'blando' });
+    destD.dibuja(t, A.deriva, 0.9);
+    X.anima($('pNo'), t, { entra: A.encajan, dur: 0.5, sale: A.volver + 0.1, desde: { s: 0.6, y: 0, blur: 12 }, curva: 'blando' });
+    X.anima($('pOtra'), t, { entra: A.contagiarte - 0.2, dur: 0.5, sale: A.oms - 0.6, desde: { y: 30, blur: 12, s: 0.9 }, curva: 'blando' });
+
+    // --- zona E: la OMS, dos veces al año, un hemisferio y otro ---
+    X.anima($('cOMS'), t, { entra: A.oms, dur: 0.6, sale: A.dos - 0.2, desde: { y: -30, blur: 12, s: 0.94 }, curva: 'firme' });
+    X.anima($('meses'), t, { entra: A.dos - 0.1, dur: 0.6, sale: A.hay, desde: { y: -30, blur: 12 }, curva: 'firme' });
+    meses.forEach((m, i) => m.classList.toggle('on', (i === 1 && t >= A.dos + 0.1) || (i === 8 && t >= A.veces + 0.3)));
+    const uN = X.C.suave(X.seg(t, A.una - 0.1, A.una + 0.4)), uS = X.C.suave(X.seg(t, A.hemisferio - 0.2, A.hemisferio + 0.3));
+    $('hNorte').setAttribute('opacity', (0.42 * uN * (1 - 0.6 * uS)).toFixed(3)); $('hSur').setAttribute('opacity', (0.42 * uS).toFixed(3));
+    X.anima($('etiN'), t, { entra: A.una - 0.05, dur: 0.6, desde: { y: -20, blur: 10 }, curva: 'blando' });
+    X.anima($('etiS'), t, { entra: A.hemisferio - 0.2, dur: 0.6, desde: { y: 20, blur: 10 }, curva: 'blando' });
+
+    // --- zona F: la protección baja con los meses ---
+    const uP = X.C.inOut(X.seg(t, A.proteccion, A.meses + 0.5));
+    X.traza($('curva'), t, A.proteccion - 0.1, A.meses + 0.5 - A.proteccion, 'inOut');
+    $('area').style.opacity = uP.toFixed(3);
+    $('punto').setAttribute('cx', cx_(uP).toFixed(1)); $('punto').setAttribute('cy', cy_(uP).toFixed(1)); $('punto').style.opacity = t < A.proteccion - 0.1 ? 0 : 1;
+    ysF.forEach((y) => { const u0 = y.m / 6; y.g.setAttribute('opacity', (uP >= u0 - 0.001 && t >= A.proteccion - 0.1 ? X.limita((uP - u0 + 0.06) * 12) : 0).toFixed(3)); });
+    X.anima($('pMes'), t, { entra: A.proteccion - 0.1, dur: 0.55, sale: A.asi - 0.1, desde: { y: -30, blur: 12 }, curva: 'firme' });
+    const nm = String(Math.round(uP * 6)); if ($('nMes').textContent !== nm) $('nMes').textContent = nm;
+
+    // --- final: llave nueva, cerradura nueva ---
+    X.anima($('cNueva'), t, { entra: A.llaveN - 0.05, dur: 0.6, desde: { x: -60, y: 0, blur: 14, s: 0.9 }, curva: 'blando' });
+    X.anima($('cNueva2'), t, { entra: A.cerrN - 0.05, dur: 0.6, desde: { x: 60, y: 0, blur: 14, s: 0.9 }, curva: 'blando' });
+    destN.dibuja(t, A.cerrN + 0.4, 0.8);
+    subs.dibuja(t);
+  };
+});
+</script></body></html>

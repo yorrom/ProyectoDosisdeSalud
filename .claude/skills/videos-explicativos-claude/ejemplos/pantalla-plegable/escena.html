@@ -1,0 +1,453 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><title>Pantalla plegable</title>
+<link rel="stylesheet" href="motor/explica.css">
+<script src="voz/timeline.js"></script>
+<script src="motor/explica.js"></script>
+<script src="motor/materiales.js"></script>
+<style>
+  #lienzo { background: #0D0B12; }
+  .lbl { font-family: 'Bricolage'; font-weight: 700; font-size: 52px; letter-spacing: -1px; fill: #F3EEE6; }
+  .lbls { font-family: 'Mono'; font-weight: 700; font-size: 24px; letter-spacing: 3px; fill: rgba(243,238,230,.55); }
+  .pill { position: absolute; left: 0; right: 0; margin: 0 auto; width: max-content; top: 200px; padding: 18px 34px; border-radius: 999px; font-family: 'Mono'; font-weight: 700;
+    font-size: 36px; letter-spacing: 2px; white-space: nowrap; background: rgba(20,18,26,.86); border: 2px solid rgba(255,255,255,.14);
+    box-shadow: 0 18px 40px -12px rgba(0,0,0,.7); backdrop-filter: blur(8px); display: flex; align-items: center; gap: 16px; }
+  .pill .dot { width: 20px; height: 20px; border-radius: 50%; }
+  .card { position: absolute; left: 0; right: 0; margin: 0 auto; width: max-content; top: 190px; padding: 22px 46px 26px; border-radius: 34px; text-align: center;
+    background: rgba(20,18,26,.88); border: 2px solid rgba(255,255,255,.14); box-shadow: 0 30px 60px -20px rgba(0,0,0,.85); backdrop-filter: blur(8px); white-space: nowrap; }
+  .card .num { font-family: 'Bricolage'; font-weight: 700; font-size: 150px; line-height: 1; letter-spacing: -4px; color: #7FE3FF; text-shadow: 0 0 40px rgba(127,227,255,.45); }
+  .card .num span { font-size: 80px; letter-spacing: -1px; }
+  .card small { display: block; font-family: 'Mono'; font-weight: 700; font-size: 28px; letter-spacing: 4px; color: var(--tenue); margin-top: 8px; }
+  .titular { text-shadow: 0 10px 40px rgba(0,0,0,.7); font-size: 82px; left: 40px; right: 40px; }
+  #tinte { position: absolute; inset: 0; pointer-events: none; background: radial-gradient(900px 1100px at 50% 45%, rgba(40,140,190,.55), rgba(10,30,60,.0) 75%); mix-blend-mode: screen; opacity: 0; }
+</style></head>
+<body><div id="lienzo">
+  <svg id="mundo-svg" viewBox="0 0 1080 1920"><g id="cam">
+    <!-- fondo: estudio oscuro con rejilla de plano técnico (lejos, parallax) -->
+    <g id="fondo">
+      <rect x="-1800" y="-1200" width="6000" height="8000" fill="url(#g-fondo)"/>
+      <rect x="-1800" y="-1200" width="6000" height="8000" fill="url(#p-rejilla)" opacity=".55"/>
+      <circle cx="540" cy="700" r="900" fill="url(#g-halo-calido)"/>
+      <circle cx="1900" cy="800" r="800" fill="url(#g-halo-frio)"/>
+      <circle cx="560" cy="2700" r="900" fill="url(#g-halo-frio)"/>
+      <circle cx="1900" cy="2500" r="900" fill="url(#g-halo-calido)"/>
+      <circle cx="540" cy="4650" r="900" fill="url(#g-halo-frio)"/>
+    </g>
+    <!-- S1 · suelo brillante del escaparate -->
+    <rect x="-900" y="1262" width="2900" height="900" fill="url(#g-suelo)"/>
+    <rect x="-900" y="1258" width="2900" height="5" fill="#fff" opacity=".06"/>
+    <g id="reflejo" mask="url(#m-reflejo)" opacity=".32"><g transform="translate(0 2530) scale(1 -1)"><use href="#telefono"/></g></g>
+    <ellipse cx="540" cy="1262" rx="380" ry="26" fill="url(#g-contacto)"/>
+    <g id="telefono"></g>
+    <g id="lupaCapa"></g>
+
+    <!-- S2 · vidrio rígido contra lámina flexible -->
+    <g id="s2"></g>
+    <!-- S3 · capas que se separan -->
+    <g id="s3"></g>
+    <!-- S4 · el doblez en sección: se estira, se aprieta, eje neutro -->
+    <g id="s4"></g>
+    <!-- S5 · la bisagra -->
+    <g id="s5"></g>
+  </g></svg>
+  <div id="tinte"></div>
+
+  <div id="titular" class="titular" style="top:180px">¿Cómo se dobla una<br>pantalla <em>sin romperse</em>?</div>
+  <div id="pDuo" class="pill"><span class="dot" style="background:var(--acento)"></span>iPHONE DUO · A LA VENTA 23 OCT</div>
+  <div id="pRaja" class="pill" style="border-color:var(--peligro);color:#FF8A8D;background:rgba(60,14,20,.86)"><span class="dot" style="background:var(--peligro)"></span>EL VIDRIO NORMAL SE RAJA</div>
+  <div id="pDentro" class="pill"><span class="dot" style="background:#7FE3FF"></span>LA PANTALLA, POR DENTRO</div>
+  <div id="cMicras" class="card"><div class="num" id="nMicras">0<span> µm</span></div><small>CRISTAL ULTRAFINO</small></div>
+  <div id="tEje" class="card" style="top:180px"><div class="num" style="font-size:118px;color:var(--acento);text-shadow:0 0 40px rgba(255,138,91,.5)">EJE NEUTRO</div><small>NI SE ESTIRA NI SE APRIETA</small></div>
+  <div id="pBisagra" class="pill"><span class="dot" style="background:#C9D2DE"></span>LA BISAGRA</div>
+  <div id="pFin" class="pill" style="border-color:var(--ok);color:#9FF3C4;background:rgba(14,48,32,.86)"><span class="dot" style="background:var(--ok)"></span>SE DOBLA · NO SE ROMPE</div>
+  <div id="subs"></div>
+  <div id="barra" class="progreso"></div>
+</div>
+<script>
+X.listo(() => {
+  const $ = (id) => document.getElementById(id), NS = 'http://www.w3.org/2000/svg';
+  const svg = $('mundo-svg');
+  X.defs(svg); X.materiales(svg);
+  svg.querySelector('defs').insertAdjacentHTML('beforeend', `
+    <linearGradient id="g-fondo" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#151221"/><stop offset=".5" stop-color="#100E18"/><stop offset="1" stop-color="#0B0A10"/></linearGradient>
+    <pattern id="p-rejilla" width="80" height="80" patternUnits="userSpaceOnUse"><path d="M80 0 L0 0 0 80" fill="none" stroke="rgba(150,180,255,.09)" stroke-width="2"/></pattern>
+    <radialGradient id="g-halo-calido"><stop offset="0" stop-color="#FF8A5B" stop-opacity=".16"/><stop offset="1" stop-color="#FF8A5B" stop-opacity="0"/></radialGradient>
+    <radialGradient id="g-halo-frio"><stop offset="0" stop-color="#5FB8FF" stop-opacity=".15"/><stop offset="1" stop-color="#5FB8FF" stop-opacity="0"/></radialGradient>
+    <linearGradient id="g-suelo" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#1D1928"/><stop offset="1" stop-color="#0B0A10"/></linearGradient>
+    <linearGradient id="g-refl" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#fff" stop-opacity=".9"/><stop offset=".35" stop-color="#fff" stop-opacity="0"/></linearGradient>
+    <mask id="m-reflejo" maskUnits="userSpaceOnUse" x="-900" y="1262" width="2900" height="900"><rect x="-900" y="1262" width="2900" height="420" fill="url(#g-refl)"/></mask>
+    <linearGradient id="g-wall" gradientUnits="userSpaceOnUse" x1="250" y1="420" x2="830" y2="1240"><stop offset="0" stop-color="#3B1D6E"/><stop offset=".45" stop-color="#B63F7A"/><stop offset=".8" stop-color="#FF8A5B"/><stop offset="1" stop-color="#FFC27A"/></linearGradient>
+    <linearGradient id="g-titanio" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#D9D4CC"/><stop offset=".5" stop-color="#8F8B86"/><stop offset="1" stop-color="#C9C4BC"/></linearGradient>
+    <linearGradient id="g-espec" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#fff" stop-opacity="0"/><stop offset=".5" stop-color="#fff" stop-opacity=".42"/><stop offset="1" stop-color="#fff" stop-opacity="0"/></linearGradient>
+    <linearGradient id="g-vidrio" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#CFF4FF" stop-opacity=".95"/><stop offset=".5" stop-color="#7FD3EE" stop-opacity=".75"/><stop offset="1" stop-color="#3E8FB0" stop-opacity=".9"/></linearGradient>
+    <linearGradient id="g-ambar" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#FFC56B"/><stop offset="1" stop-color="#C9731C"/></linearGradient>
+    <pattern id="p-rgb" width="24" height="24" patternUnits="userSpaceOnUse"><rect width="24" height="24" fill="#120F18"/><rect x="2" y="3" width="5" height="18" rx="2" fill="#FF4D5E"/><rect x="9.5" y="3" width="5" height="18" rx="2" fill="#4BEA7A"/><rect x="17" y="3" width="5" height="18" rx="2" fill="#4F8BFF"/></pattern>
+    <pattern id="p-rgb2" width="18" height="18" patternUnits="userSpaceOnUse"><rect width="18" height="18" fill="#120F18"/><rect x="1" y="2" width="4" height="14" rx="1.5" fill="#FF4D5E"/><rect x="7" y="2" width="4" height="14" rx="1.5" fill="#4BEA7A"/><rect x="13" y="2" width="4" height="14" rx="1.5" fill="#4F8BFF"/></pattern>`);
+  const el = (tag, at = {}, padre) => { const e = document.createElementNS(NS, tag); for (const k in at) e.setAttribute(k, at[k]); if (padre) padre.appendChild(e); return e; };
+  // etiqueta de cristal en el mundo (callout): devuelve el grupo (envuelto para poder animarlo)
+  const etiqueta = (padre, x, y, texto, sub, color, { ancla = 'izq', tam = 52 } = {}) => {
+    const w = el('g', { transform: `translate(${x} ${y})` }, padre), g = el('g', {}, w);
+    const caja = el('rect', { x: 0, y: -50, height: sub ? 104 : 80, rx: 20, fill: 'rgba(20,18,26,.86)', stroke: 'rgba(255,255,255,.14)', 'stroke-width': 2, filter: 'url(#f-sombra-s)' }, g);
+    el('circle', { cx: 30, cy: sub ? 2 : -10, r: 11, fill: color }, g);
+    if (sub) { const s = el('text', { x: 54, y: -16, class: 'lbls' }, g); s.textContent = sub; }
+    const tx = el('text', { x: 54, y: sub ? 34 : 6, class: 'lbl', 'font-size': tam }, g); tx.textContent = texto;
+    const ancho = Math.max(tx.getComputedTextLength(), sub ? g.querySelector('.lbls').getComputedTextLength() : 0) + 84;
+    caja.setAttribute('width', ancho); caja.setAttribute('y', sub ? -48 : -50);
+    if (ancla === 'der') g.setAttribute('transform', `translate(${-ancho} 0)`); else if (ancla === 'centro') g.setAttribute('transform', `translate(${-ancho / 2} 0)`);
+    return { w, g, texto: tx, ancho, sombra: w };
+  };
+  const marca = (padre, x, y, ok) => { const w = el('g', { transform: `translate(${x} ${y})` }, padre), g = el('g', {}, w);
+    el('circle', { r: 44, fill: ok ? 'var(--ok)' : 'var(--peligro)', filter: 'url(#f-brillo)' }, g);
+    el('path', ok ? { d: 'M-19 2 L-5 16 L21 -13', fill: 'none', stroke: '#0E0D11', 'stroke-width': 10, 'stroke-linecap': 'round', 'stroke-linejoin': 'round' } : { d: 'M-16 -16 L16 16 M16 -16 L-16 16', stroke: '#fff', 'stroke-width': 10, 'stroke-linecap': 'round' }, g);
+    return g; };
+
+  // ---------- anclas ----------
+  const A = {
+    pantalla: X.debe(X.en('pantalla'), 'pantalla'), duo: X.debe(X.en('Duo'), 'Duo'), abre: X.debe(X.en('abre'), 'abre'), mitad: X.debe(X.en('mitad'), 'mitad'),
+    cristal: X.debe(X.en('cristal normal'), 'cristal normal'), doblarlo: X.debe(X.en('doblarlo'), 'doblarlo'), raja: X.debe(X.en('rajaría'), 'rajaría'),
+    truco: X.debe(X.en('truco'), 'truco'), dentro: X.debe(X.en('dentro'), 'dentro'), pixeles: X.debe(X.en('píxeles'), 'píxeles'), vidrio: X.debe(X.en('vidrio'), 'vidrio'),
+    plastico: X.debe(X.en('plástico'), 'plástico'), poli: X.debe(X.en('poliimida'), 'poliimida'), encima: X.debe(X.en('encima'), 'encima'),
+    treinta: X.debe(X.en('30'), '30'), micras: X.debe(X.en('micras'), 'micras'), fino: X.debe(X.en('fino'), 'fino'), parte: X.debe(X.en('parte'), 'parte'),
+    sedobla: X.debe(X.en('se dobla', 2), 'se dobla'), curioso: X.debe(X.en('curioso'), 'curioso'), doblar: X.debe(X.en('al doblar', 2), 'al doblar'),
+    estira: X.debe(X.en('estira'), 'estira'), aprieta: X.debe(X.en('aprieta'), 'aprieta'), linea: X.debe(X.en('línea'), 'línea'), eje: X.debe(X.en('eje neutro'), 'eje neutro'),
+    capas: X.debe(X.en('capas delicadas'), 'capas delicadas'), bisagra: X.debe(X.en('bisagra'), 'bisagra'), pico: X.debe(X.en('pico'), 'pico'), gota: X.debe(X.en('gota'), 'gota'),
+    poreso: X.debe(X.en('por eso'), 'por eso'), abre2: X.debe(X.en('abre', 2), 'abre (final)'), romperse2: X.debe(X.en('romperse', 2), 'romperse (final)'),
+  };
+
+  // =========================================================== S1 · el teléfono plegable (falso 3D con luz especular)
+  const HX = 540, Y0 = 420, Y1 = 1240, HW = 290;   // bisagra, arriba, abajo, ancho de cada mitad
+  const tel = $('telefono');
+  const mitad = (lado) => {   // lado -1 = izquierda, +1 = derecha. Coordenadas locales = teléfono abierto y plano
+    const g = el('g', {}, tel), x0 = lado < 0 ? HX - HW : HX, x1 = lado < 0 ? HX : HX + HW, id = 'clip' + (lado < 0 ? 'I' : 'D');
+    el('clipPath', { id }, g).appendChild(el('rect', { x: x0 + (lado < 0 ? 14 : 0), y: Y0 + 14, width: HW - 14, height: Y1 - Y0 - 28, rx: 0 }));
+    // marco de titanio (esquinas redondeadas solo por fuera)
+    const R = 56, ext = lado < 0 ? x0 : x1, int = lado < 0 ? x1 : x0, s = lado;
+    const dMarco = `M${int} ${Y0} L${ext - s * R} ${Y0} Q${ext} ${Y0} ${ext} ${Y0 + R} L${ext} ${Y1 - R} Q${ext} ${Y1} ${ext - s * R} ${Y1} L${int} ${Y1} Z`;
+    el('path', { d: dMarco, fill: 'url(#g-titanio)', filter: 'url(#m-metal)' }, g);
+    el('path', { d: dMarco, fill: 'none', stroke: 'rgba(255,255,255,.35)', 'stroke-width': 2 }, g);
+    const sc = el('g', { 'clip-path': `url(#${id})` }, g);
+    const R2 = 42, e2 = ext - s * 14;
+    const dPant = `M${int} ${Y0 + 14} L${e2 - s * R2} ${Y0 + 14} Q${e2} ${Y0 + 14} ${e2} ${Y0 + 14 + R2} L${e2} ${Y1 - 14 - R2} Q${e2} ${Y1 - 14} ${e2 - s * R2} ${Y1 - 14} L${int} ${Y1 - 14} Z`;
+    el('path', { d: dPant, fill: '#06050A' }, sc);
+    const ins = 10, wall = el('g', {}, sc);
+    el('rect', { x: HX - HW + ins, y: Y0 + 24, width: 2 * HW - 2 * ins, height: Y1 - Y0 - 48, rx: 34, fill: 'url(#g-wall)' }, wall);
+    // ondas del fondo de pantalla
+    [[0.32, '#FFB07A', .35], [0.55, '#FF6FA5', .28], [0.75, '#7A5CFF', .3]].forEach(([k, c, o], i) => {
+      let d = `M${HX - HW} ${Y0 + (Y1 - Y0) * k}`; for (let x = HX - HW; x <= HX + HW; x += 20) d += ` L${x} ${(Y0 + (Y1 - Y0) * k + 40 * Math.sin(x / 70 + i * 2)).toFixed(1)}`;
+      el('path', { d: d + ` L${HX + HW} ${Y1} L${HX - HW} ${Y1} Z`, fill: c, opacity: o }, wall); });
+    // iconos genéricos (rejilla 4×5 en la pantalla abierta)
+    const cols = ['#FFFFFF', '#FFD37A', '#7FE3FF', '#8BF0B0', '#FF9FB6', '#C8B6FF'];
+    for (let r = 0; r < 5; r++) for (let c = 0; c < 6; c++) { const x = HX - HW + 46 + c * 88, y = Y0 + 120 + r * 108;
+      if ((lado < 0) !== (x + 32 < HX)) continue; if (r === 4 && c > 1 && c < 4) continue;
+      el('rect', { x, y, width: 64, height: 64, rx: 18, fill: cols[(r * 6 + c * 5) % 6], opacity: .82 }, wall);
+      el('rect', { x: x + 4, y: y + 4, width: 56, height: 22, rx: 11, fill: '#fff', opacity: .25 }, wall); }
+    el('rect', { x: HX - HW + 40, y: Y1 - 160, width: 2 * HW - 80, height: 100, rx: 34, fill: '#fff', opacity: .16 }, wall);
+    const sombra = el('rect', { x: x0, y: Y0, width: HW, height: Y1 - Y0, fill: '#000', opacity: 0 }, sc);
+    const espec = el('rect', { x: x0 - 400, y: Y0 - 200, width: 260, height: Y1 - Y0 + 400, fill: 'url(#g-espec)', transform: 'rotate(18 540 830)' }, sc);
+    return { g, sombra, espec, lado };
+  };
+  const mI = mitad(-1), mD = mitad(1);
+  // el pliegue (se ve un poco con la pantalla plana)
+  const pliegue = el('g', {}, tel);
+  el('rect', { x: HX - 7, y: Y0 + 14, width: 14, height: Y1 - Y0 - 28, fill: 'url(#g-cromo)', opacity: .22 }, pliegue);
+  el('line', { x1: HX, y1: Y0 + 14, x2: HX, y2: Y1 - 14, stroke: '#000', 'stroke-width': 2, opacity: .5 }, pliegue);
+  const K = 0.24;
+  const pliega = (a, t) => {   // a = ángulo de cada mitad (grados, 0 = plana)
+    const r = a * Math.PI / 180, c = Math.cos(r), s = Math.sin(r);
+    mI.g.setAttribute('transform', `matrix(${c.toFixed(4)} ${(K * s).toFixed(4)} 0 1 ${(HX - HX * c).toFixed(2)} ${(-HX * K * s).toFixed(2)})`);
+    mD.g.setAttribute('transform', `matrix(${c.toFixed(4)} ${(-K * s).toFixed(4)} 0 1 ${(HX - HX * c).toFixed(2)} ${(HX * K * s).toFixed(2)})`);
+    mI.sombra.setAttribute('opacity', (0.42 * s).toFixed(3)); mD.sombra.setAttribute('opacity', (0.12 * s).toFixed(3));
+    const px = 300 + 520 * ((t * 0.18 + a / 120) % 1.4);
+    [mI, mD].forEach((m) => m.espec.setAttribute('x', (px - 200).toFixed(1)));
+    pliegue.setAttribute('opacity', (1 - X.limita(a / 25)).toFixed(3));
+  };
+  const lupa = X.lupa($('lupaCapa'), { fuente: '#telefono', r: 165, zoom: 3 });
+  const eLupa = etiqueta($('lupaCapa'), 790, 470, 'PLIEGUE', 'LA MITAD', 'var(--acento)', { ancla: 'centro', tam: 48 });
+  const e76 = etiqueta($('lupaCapa'), 300, 372, '7,6 PULGADAS', 'ABIERTA', '#FFC27A', { ancla: 'centro' });
+
+  // =========================================================== S2 · vidrio que se raja / lámina que se curva
+  const s2 = $('s2'), C2 = 1900, XA = 1580, XB = 2220, YV = 700, TV = 34, YF = 1010;
+  const pinza = (x, y) => { el('rect', { x: x - 46, y: y - 70, width: 92, height: 140 + TV, rx: 16, fill: '#8E96A3', filter: 'url(#m-metal)' }, s2);
+    el('rect', { x: x - 46, y: y - 6, width: 92, height: TV + 12, fill: '#2A2732' }, s2); el('circle', { cx: x, cy: y - 42, r: 9, fill: '#C9D2DE' }, s2); el('circle', { cx: x, cy: y + TV + 42, r: 9, fill: '#C9D2DE' }, s2); };
+  const vidrioG = el('g', {}, s2);
+  const vEntero = el('path', { fill: 'url(#g-vidrio)', filter: 'url(#m-cristal)', stroke: '#E8FBFF', 'stroke-width': 2 }, vidrioG);
+  const trozoI = el('g', {}, vidrioG), trozoD = el('g', {}, vidrioG);
+  el('path', { d: `M${XA} ${YV} L${C2 - 6} ${YV} L${C2 + 8} ${YV + 10} L${C2 - 10} ${YV + 22} L${C2 + 2} ${YV + TV} L${XA} ${YV + TV} Z`, fill: 'url(#g-vidrio)', filter: 'url(#m-cristal)', stroke: '#E8FBFF', 'stroke-width': 2 }, trozoI);
+  el('path', { d: `M${XB} ${YV} L${C2 - 6} ${YV} L${C2 + 8} ${YV + 10} L${C2 - 10} ${YV + 22} L${C2 + 2} ${YV + TV} L${XB} ${YV + TV} Z`, fill: 'url(#g-vidrio)', filter: 'url(#m-cristal)', stroke: '#E8FBFF', 'stroke-width': 2 }, trozoD);
+  const grietas = [];
+  const az2 = X.azar(7);
+  for (let i = 0; i < 7; i++) { let x = C2, y = YV + 17, d = `M${x} ${y}`; const dir = i % 2 ? 1 : -1, ang = (az2() - 0.5) * 0.9;
+    for (let k = 0; k < 6; k++) { x += dir * (22 + az2() * 26); y += Math.tan(ang) * 20 + (az2() - 0.5) * 26; d += ` L${x.toFixed(1)} ${y.toFixed(1)}`; }
+    grietas.push(el('path', { d, fill: 'none', stroke: '#FFFFFF', 'stroke-width': 4, 'stroke-linecap': 'round', 'stroke-linejoin': 'round', opacity: .9 }, s2)); }
+  const empujador = el('g', {}, s2);
+  el('rect', { x: C2 - 22, y: YV - 420, width: 44, height: 400, rx: 12, fill: '#9AA3B2', filter: 'url(#m-metal)' }, empujador);
+  el('rect', { x: C2 - 40, y: YV - 36, width: 80, height: 34, rx: 12, fill: '#C9D2DE', filter: 'url(#m-metal)' }, empujador);
+  pinza(XA, YV); pinza(XB, YV);
+  const ondaVidrio = X.onda(s2, { x: C2, y: YV + 17, color: '#FF5A5F', radio: 300, ancho: 12 });
+  const film = el('path', { fill: 'url(#g-ambar)', filter: 'url(#m-plastico)' }, s2);
+  const filmLuz = el('path', { fill: 'none', stroke: '#FFE6B8', 'stroke-width': 4, opacity: .7 }, s2);
+  pinza(XA, YF); pinza(XB, YF);
+  const eVidrio = etiqueta(s2, XA - 50, YV - 120, 'VIDRIO', 'RÍGIDO', '#7FE3FF', { tam: 50 });
+  const eFlex = etiqueta(s2, XA - 50, YF + 190, 'LÁMINA FLEXIBLE', null, '#FFC56B', { tam: 50 });
+  const xRaja = marca(s2, XB - 40, YV - 90, false), okFlex = marca(s2, XB - 40, YF + 200, true);
+
+  // =========================================================== S3 · explosión de capas (isométrico)
+  const s3 = $('s3'), C3 = 420, W3 = 270, H3 = 114;
+  const losa = (cy, t, fill, mat, { top = fill, lados = ['#000', '#000'] } = {}) => {
+    const w = el('g', {}, s3), g = el('g', {}, w);
+    el('polygon', { points: `${C3 - W3},${cy} ${C3},${cy + H3} ${C3},${cy + H3 + t} ${C3 - W3},${cy + t}`, fill, opacity: 1 }, g);
+    el('polygon', { points: `${C3 - W3},${cy} ${C3},${cy + H3} ${C3},${cy + H3 + t} ${C3 - W3},${cy + t}`, fill: lados[0], opacity: .38 }, g);
+    el('polygon', { points: `${C3},${cy + H3} ${C3 + W3},${cy} ${C3 + W3},${cy + t} ${C3},${cy + H3 + t}`, fill, opacity: 1 }, g);
+    el('polygon', { points: `${C3},${cy + H3} ${C3 + W3},${cy} ${C3 + W3},${cy + t} ${C3},${cy + H3 + t}`, fill: lados[1], opacity: .58 }, g);
+    const cara = el('polygon', { points: `${C3 - W3},${cy} ${C3},${cy - H3} ${C3 + W3},${cy} ${C3},${cy + H3}`, fill: top, filter: mat ? `url(#${mat})` : '' }, g);
+    el('polyline', { points: `${C3 - W3},${cy} ${C3},${cy + H3} ${C3 + W3},${cy}`, fill: 'none', stroke: 'rgba(255,255,255,.4)', 'stroke-width': 2 }, g);
+    return { w, g, cara, cy };
+  };
+  const BASE = 2700;
+  const capas = [
+    { id: 'soporte', t: 26, y: 2960, fill: '#7C8696', mat: 'm-metal', texto: 'SOPORTE', sub: 'METAL', col: '#C9D2DE' },
+    { id: 'poli', t: 18, y: 2830, fill: '#E08A2A', top: 'url(#g-ambar)', mat: 'm-plastico', texto: 'POLIIMIDA', sub: 'PLÁSTICO FLEXIBLE', col: '#FFC56B' },
+    { id: 'pix', t: 16, y: 2700, fill: '#1A1622', top: 'url(#p-rgbIso)', mat: null, texto: 'PÍXELES', sub: 'OLED · LA LUZ', col: '#FF7AA0' },
+    { id: 'tactil', t: 12, y: 2570, fill: '#55657A', mat: 'm-plastico', texto: 'TÁCTIL', sub: 'EL DEDO', col: '#9FB3CC' },
+    { id: 'cristal', t: 20, y: 2440, fill: '#7FD3EE', top: 'url(#g-vidrio)', mat: 'm-cristal', texto: 'CRISTAL', sub: 'ULTRAFINO', col: '#7FE3FF' },
+  ];
+  // patrón RGB en isométrico
+  svg.querySelector('defs').insertAdjacentHTML('beforeend', `<pattern id="p-rgbIso" href="#p-rgb" patternTransform="matrix(.9 ${(-.9 * H3 / W3).toFixed(4)} .9 ${(.9 * H3 / W3).toFixed(4)} ${C3 - W3} 0)"/>`);
+  let yc = BASE + 60; capas.forEach((c) => { c.yc = yc; yc -= c.t; });
+  // vidrio «fantasma» donde NO va (en lugar de la poliimida)
+  capas.forEach((c, i) => {
+    if (c.id === 'poli') { c.fantasma = losa(c.y, 18, '#7FD3EE', 'm-cristal', { top: 'url(#g-vidrio)' }); c.xFant = marca(c.fantasma.g, C3, c.y, false); }
+    c.L = losa(c.y, c.t, c.fill, c.mat, { top: c.top || c.fill });
+    if (c.id === 'pix') { c.brillo = el('polygon', { points: `${C3 - W3},${c.y} ${C3},${c.y - H3} ${C3 + W3},${c.y} ${C3},${c.y + H3}`, fill: 'url(#p-rgbIso)', filter: 'url(#f-brillo)', opacity: 0 }, c.L.g); }
+    if (c.id === 'cristal') { c.espec = el('polygon', { points: `${C3 - W3},${c.y} ${C3},${c.y - H3} ${C3 + W3},${c.y} ${C3},${c.y + H3}`, fill: 'url(#g-espec)', opacity: 0 }, c.L.g); }
+    c.E = etiqueta(c.L.g, C3 + W3 + 46, c.y + 8, c.texto, c.sub, c.col, { tam: 46 });
+    el('line', { x1: C3 + W3 - 4, y1: c.y + 8, x2: C3 + W3 + 42, y2: c.y + 8, stroke: 'rgba(255,255,255,.35)', 'stroke-width': 3 }, c.L.g);
+  });
+  const P3 = Object.fromEntries(capas.map((c) => [c.id, c]));
+  // cota del grosor del cristal (30 µm)
+  const cota = el('g', {}, P3.cristal.L.g);
+  el('path', { d: `M${C3 - W3 - 40} ${P3.cristal.y - 26} L${C3 - W3 - 40} ${P3.cristal.y + 46}`, stroke: '#7FE3FF', 'stroke-width': 5, fill: 'none' }, cota);
+  el('path', { d: `M${C3 - W3 - 58} ${P3.cristal.y - 26} L${C3 - W3 - 22} ${P3.cristal.y - 26} M${C3 - W3 - 58} ${P3.cristal.y + 46} L${C3 - W3 - 22} ${P3.cristal.y + 46}`, stroke: '#7FE3FF', 'stroke-width': 5 }, cota);
+
+  // =========================================================== S4 · sección doblada: se estira / se aprieta / eje neutro
+  const s4 = $('s4'), CX4 = 1900, Y4 = 2560, L4 = 900, N = 48;
+  const capas4 = [ // [n1, n2, relleno, material]  n < 0 = cara de dentro (arriba), n > 0 = cara de fuera
+    [-60, -44, 'url(#g-vidrio)', 'm-cristal'], [-44, -34, '#55657A', null], [-34, -20, 'url(#p-rgb2)', null], [-20, 12, 'url(#g-ambar)', 'm-plastico'], [12, 60, '#7C8696', 'm-metal'],
+  ];
+  const banda = capas4.map(([, , f, m]) => el('path', { fill: f, filter: m ? `url(#${m})` : '' }, s4));
+  const fino = el('path', { fill: 'url(#g-vidrio)', filter: 'url(#m-cristal)', stroke: '#E8FBFF', 'stroke-width': 2 }, s4);
+  const rayas = Array.from({ length: 17 }, () => el('path', { stroke: 'rgba(255,255,255,.55)', 'stroke-width': 3, fill: 'none' }, s4));
+  const pixMovil = el('path', { fill: 'url(#p-rgb2)', stroke: '#FF9FB6', 'stroke-width': 0 }, s4);
+  const pixBrillo = el('path', { fill: 'none', stroke: '#FF7AA0', 'stroke-width': 18, opacity: 0, filter: 'url(#f-brillo)' }, s4);
+  const neutroSombra = el('path', { fill: 'none', stroke: '#1A0E08', 'stroke-width': 22, 'stroke-linecap': 'round', opacity: .85 }, s4);
+  const neutro = el('path', { fill: 'none', stroke: '#FFB08A', 'stroke-width': 9, 'stroke-linecap': 'round', filter: 'url(#f-brillo)' }, s4);
+  const flechasFuera = el('g', {}, s4), flechasDentro = el('g', {}, s4);
+  const eEstira = etiqueta(s4, CX4, Y4 + 190, 'SE ESTIRA', 'CARA DE FUERA', 'var(--peligro)', { ancla: 'centro' });
+  const eAprieta = etiqueta(s4, CX4, Y4 - 215, 'SE APRIETA', 'CARA DE DENTRO', 'var(--agua)', { ancla: 'centro' });
+  const okFino = marca(s4, CX4, Y4 - 200, true);
+  const ePix = etiqueta(s4, CX4 + 360, Y4 - 330, 'PÍXELES AQUÍ', 'A SALVO', '#FF7AA0', { ancla: 'centro', tam: 48 });
+  // punto de la línea central (s = arco desde el centro) desplazado n por la normal
+  const pt = (s, n, k) => { if (Math.abs(k) < 1e-6) return [CX4 + s, Y4 + n]; const f = s * k, R = 1 / k;
+    return [CX4 + Math.sin(f) * (R + n), Y4 - R + Math.cos(f) * (R + n)]; };
+  const tira = (n1, n2, k, s0 = -L4 / 2, s1 = L4 / 2) => { let d = ''; for (let i = 0; i <= N; i++) { const p = pt(X.lerp(s0, s1, i / N), n1, k); d += (i ? 'L' : 'M') + p[0].toFixed(1) + ' ' + p[1].toFixed(1); }
+    for (let i = N; i >= 0; i--) { const p = pt(X.lerp(s0, s1, i / N), n2, k); d += 'L' + p[0].toFixed(1) + ' ' + p[1].toFixed(1); } return d + 'Z'; };
+  const linea = (n, k) => { let d = ''; for (let i = 0; i <= N; i++) { const p = pt(X.lerp(-L4 / 2, L4 / 2, i / N), n, k); d += (i ? 'L' : 'M') + p[0].toFixed(1) + ' ' + p[1].toFixed(1); } return d; };
+  const flechita = (s, n, k, sentido, col) => { // flecha doble tangente en (s, n): sentido +1 = se separan, -1 = se juntan
+    const a = pt(s - 24, n, k), b = pt(s + 24, n, k), d = [], hd = (p, q) => { const ang = Math.atan2(q[1] - p[1], q[0] - p[0]), h = 16;
+      return `M${(q[0] - h * Math.cos(ang - .6)).toFixed(1)} ${(q[1] - h * Math.sin(ang - .6)).toFixed(1)} L${q[0].toFixed(1)} ${q[1].toFixed(1)} L${(q[0] - h * Math.cos(ang + .6)).toFixed(1)} ${(q[1] - h * Math.sin(ang + .6)).toFixed(1)}`; };
+    const m = pt(s, n, k);
+    if (sentido > 0) d.push(`M${m[0].toFixed(1)} ${m[1].toFixed(1)} L${a[0].toFixed(1)} ${a[1].toFixed(1)}`, hd(m, a), `M${m[0].toFixed(1)} ${m[1].toFixed(1)} L${b[0].toFixed(1)} ${b[1].toFixed(1)}`, hd(m, b));
+    else { const a2 = pt(s - 30, n, k), b2 = pt(s + 30, n, k); d.push(`M${a2[0].toFixed(1)} ${a2[1].toFixed(1)} L${pt(s - 6, n, k).map((v) => v.toFixed(1)).join(' ')}`, hd(a2, pt(s - 6, n, k)), `M${b2[0].toFixed(1)} ${b2[1].toFixed(1)} L${pt(s + 6, n, k).map((v) => v.toFixed(1)).join(' ')}`, hd(b2, pt(s + 6, n, k))); }
+    return `<path d="${d.join(' ')}" fill="none" stroke="${col}" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"/>`; };
+
+  // =========================================================== S5 · bisagra de metal cepillado con engranajes + pico vs gota
+  const s5 = $('s5'), C5 = 540, YB = 4290;
+  el('rect', { x: 170, y: YB - 80, width: 740, height: 160, rx: 80, fill: '#8E96A3', filter: 'url(#m-metal)' }, s5);
+  el('rect', { x: 170, y: YB - 80, width: 740, height: 160, rx: 80, fill: 'none', stroke: 'rgba(255,255,255,.3)', 'stroke-width': 3 }, s5);
+  el('rect', { x: 270, y: YB - 58, width: 540, height: 116, rx: 30, fill: '#14121A', filter: 'url(#m-oclusion)' }, s5);
+  const engr = (cx, cy, r, dientes, col) => { const w = el('g', { transform: `translate(${cx} ${cy})` }, s5), g = el('g', {}, w); let d = '';
+    for (let i = 0; i < dientes * 2; i++) { const a0 = (i / (dientes * 2)) * Math.PI * 2, a1 = ((i + 1) / (dientes * 2)) * Math.PI * 2, rr = i % 2 ? r : r + 14;
+      d += (i ? 'L' : 'M') + (rr * Math.cos(a0 + 0.06)).toFixed(1) + ' ' + (rr * Math.sin(a0 + 0.06)).toFixed(1) + 'L' + (rr * Math.cos(a1 - 0.06)).toFixed(1) + ' ' + (rr * Math.sin(a1 - 0.06)).toFixed(1); }
+    el('path', { d: d + 'Z', fill: col, filter: 'url(#m-metal)' }, g); el('circle', { r: r * 0.42, fill: '#2A2732' }, g); el('circle', { r: r * 0.2, fill: '#D9DEE6' }, g);
+    for (let i = 0; i < 4; i++) el('circle', { cx: r * 0.68 * Math.cos(i * Math.PI / 2), cy: r * 0.68 * Math.sin(i * Math.PI / 2), r: 7, fill: '#3A3742' }, g);
+    return g; };
+  const gears = [engr(355, YB, 34, 10, '#C9CED6'), engr(455, YB, 34, 10, '#B8BEC8'), engr(540, YB, 34, 10, '#D7C08F'), engr(625, YB, 34, 10, '#B8BEC8'), engr(725, YB, 34, 10, '#C9CED6')];
+  [205, 875].forEach((x) => { el('circle', { cx: x, cy: YB, r: 14, fill: '#D9DEE6' }, s5); el('path', { d: `M${x - 8} ${YB} L${x + 8} ${YB}`, stroke: '#555', 'stroke-width': 3 }, s5); });
+  // diagramas de perfil: pico (izquierda) y gota (derecha)
+  const PY = 4720, LP = 200;
+  const perfil = (cx, gap, gotaR) => {
+    const g = el('g', {}, s5), placaI = el('path', { fill: 'none', stroke: '#9AA3B2', 'stroke-width': 24, 'stroke-linecap': 'round', filter: 'url(#m-metal)' }, g);
+    const placaD = el('path', { fill: 'none', stroke: '#9AA3B2', 'stroke-width': 24, 'stroke-linecap': 'round', filter: 'url(#m-metal)' }, g);
+    const pant = el('path', { fill: 'none', stroke: '#7FE3FF', 'stroke-width': 9, 'stroke-linecap': 'round', 'stroke-linejoin': 'round' }, g);
+    const piv = el('circle', { r: 16, fill: '#D7C08F', filter: 'url(#m-metal)' }, g);
+    return { g, dibuja(p) { const a = p * Math.PI / 2, c = Math.cos(a), s = Math.sin(a);
+      const pI = [cx - gap / 2, PY], pD = [cx + gap / 2, PY], dI = [-c, -s], dD = [c, -s], nI = [s, -c], nD = [-s, -c];
+      const eI = [pI[0] + dI[0] * LP, pI[1] + dI[1] * LP], eD = [pD[0] + dD[0] * LP, pD[1] + dD[1] * LP];
+      placaI.setAttribute('d', `M${pI[0]} ${pI[1]} L${eI[0].toFixed(1)} ${eI[1].toFixed(1)}`); placaD.setAttribute('d', `M${pD[0]} ${pD[1]} L${eD[0].toFixed(1)} ${eD[1].toFixed(1)}`);
+      const o = 18, aI = [eI[0] + nI[0] * o, eI[1] + nI[1] * o], bI = [pI[0] + nI[0] * o, pI[1] + nI[1] * o], aD = [eD[0] + nD[0] * o, eD[1] + nD[1] * o], bD = [pD[0] + nD[0] * o, pD[1] + nD[1] * o];
+      let d = `M${aI[0].toFixed(1)} ${aI[1].toFixed(1)} L${bI[0].toFixed(1)} ${bI[1].toFixed(1)}`;
+      if (gotaR) { const k = gotaR * p; d += ` C${(bI[0] - dI[0] * k - 0.7 * k * p).toFixed(1)} ${(bI[1] - dI[1] * k).toFixed(1)} ${(bD[0] - dD[0] * k + 0.7 * k * p).toFixed(1)} ${(bD[1] - dD[1] * k).toFixed(1)} ${bD[0].toFixed(1)} ${bD[1].toFixed(1)}`; }
+      else d += ` L${bD[0].toFixed(1)} ${bD[1].toFixed(1)}`;
+      pant.setAttribute('d', d + ` L${aD[0].toFixed(1)} ${aD[1].toFixed(1)}`);
+      piv.setAttribute('cx', cx); piv.setAttribute('cy', PY + 4); } , pant };
+  };
+  const pPico = perfil(300, 0, 0), pGota = perfil(790, 96, 170);
+  const ePico = etiqueta(s5, 300, PY + 220, 'EN PICO', null, 'var(--peligro)', { ancla: 'centro', tam: 50 });
+  const eGota = etiqueta(s5, 790, PY + 220, 'EN GOTA', null, 'var(--ok)', { ancla: 'centro', tam: 50 });
+  const xPico = marca(s5, 410, PY - 170, false), okGota = marca(s5, 920, PY - 170, true);
+  const chispa = X.onda(s5, { x: 300, y: PY - 20, color: '#FF5A5F', radio: 140, ancho: 9 });
+  const ondaGota = X.onda(s5, { x: 790, y: PY + 40, color: '#5BE49B', radio: 160, ancho: 9 });
+  const gotaHalo = el('ellipse', { cx: 790, cy: PY + 50, rx: 95, ry: 80, fill: 'none', stroke: '#5BE49B', 'stroke-width': 5, 'stroke-dasharray': '10 10', opacity: 0 }, s5);
+
+  // ---------- cámara ----------
+  const camaras = [
+    { t: 0, x: 540, y: 880, z: 1.0, r: -1, rx: 4, ry: -10 },
+    { t: A.duo + 0.2, x: 540, y: 930, z: 0.92, r: 0.5, rx: 2, ry: 8, dur: 1.4 },
+    { t: A.mitad - 0.1, x: 560, y: 900, z: 0.98, r: 0, rx: 0, ry: 0, dur: 0.9 },
+    { t: A.cristal + 0.15, x: 1900, y: 990, z: 0.98, r: 0.6, rx: 6, ry: -8, dur: 1.0 },
+    { t: A.raja + 0.05, x: 1900, y: 920, z: 1.12, r: -0.8, rx: 0, ry: 4, dur: 0.6 },
+    { t: A.truco + 0.25, x: 565, y: 2880, z: 0.9, r: 0, rx: 8, ry: -4, dur: 1.1 },
+    { t: A.pixeles + 0.2, x: 560, y: 2840, z: 1.0, r: 0.5, rx: 4, ry: 3, dur: 1.0 },
+    { t: A.vidrio, x: 560, y: 2930, z: 1.0, r: -0.5, rx: 0, ry: -3, dur: 1.0 },
+    { t: A.encima + 0.1, x: 565, y: 2640, z: 1.02, r: 0.4, rx: 6, ry: 3, dur: 1.0 },
+    { t: A.treinta, x: 400, y: 2560, z: 1.3, r: -0.4, rx: 2, ry: -6, dur: 1.0 },
+    { t: A.fino + 0.2, x: 1900, y: 2560, z: 1.12, r: 0, rx: 4, ry: 6, dur: 1.0 },
+    { t: A.curioso, x: 1900, y: 2560, z: 0.96, r: 1.2, rx: -8, ry: -10, dur: 0.8 },
+    { t: A.estira + 0.1, x: 1900, y: 2610, z: 1.08, r: -0.5, rx: 6, ry: 4, dur: 1.1 },
+    { t: A.aprieta, x: 1900, y: 2540, z: 1.08, r: 0.5, rx: -4, ry: -4, dur: 1.0 },
+    { t: A.linea, x: 1900, y: 2560, z: 1.0, r: 0, rx: 0, ry: 0, dur: 1.0 },
+    { t: A.capas, x: 1900, y: 2520, z: 1.12, r: -0.6, rx: 6, ry: 8, dur: 0.9 },
+    { t: A.bisagra + 0.1, x: 540, y: 4640, z: 1.0, r: 0, rx: 8, ry: -6, dur: 1.0 },
+    { t: A.pico, x: 400, y: 4700, z: 1.28, r: -0.6, rx: 2, ry: 8, dur: 0.8 },
+    { t: A.gota - 0.45, x: 760, y: 4720, z: 1.28, r: 0.6, rx: 2, ry: -8, dur: 0.8 },
+    { t: A.abre2, x: 540, y: 920, z: 0.94, r: 0, rx: 4, ry: 8, dur: 0.8 },
+    { t: A.romperse2, x: 540, y: 905, z: 1.0, r: -1, rx: 4, ry: -10, dur: 1.2 },
+  ];
+  camaras.slice(1).forEach((c) => X.sonido(c.t - (c.dur ?? 1.1) * 0.7, 'whoosh', 0.55));
+  [A.duo, A.mitad, A.pixeles, A.poli, A.treinta, A.estira, A.aprieta, A.eje, A.capas, A.gota].forEach((t) => X.sonido(t, 'pop', 0.5));
+  X.sonido(A.raja, 'click', 0.9); X.sonido(A.raja + 0.03, 'swoosh', 0.5); X.sonido(A.pico + 0.3, 'click', 0.8); X.sonido(A.treinta, 'teclado', 0.3);
+  X.sonido(A.curioso - 0.1, 'swoosh', 0.7); X.sonido(A.linea, 'notificacion', 0.45); X.sonido(A.romperse2, 'notificacion', 0.5); X.sonido(A.bisagra, 'click', 0.5);
+
+  const subs = X.subtitulos($('subs'), { max: 3, y: 1470, claves: ['pantalla', 'romperse', 'Duo', 'octubre', 'mitad', 'cristal', 'rajaría', 'dentro', 'píxeles', 'vidrio', 'plástico', 'poliimida', '30', 'micras', 'dobla', 'curioso', 'estira', 'aprieta', 'línea', 'eje', 'neutro', 'delicadas', 'bisagra', 'pico', 'gota', 'abre'] });
+  const contador = X.contador($('nMicras'), { desde: 500, hasta: 30 });
+  const dMicras = X.destello($('cMicras')), dEje = X.destello($('tEje')), dFin = X.destello($('pFin'));
+  const grano = X.grano($('lienzo'), 0.07);
+  const pp1 = X.primerPlano($('lienzo'), { n: 7, tipo: 'bokeh', color: '#FFD2B0', semilla: 12, prof: [1.7, 2.4], blur: [24, 40], op: [0.1, 0.22] });
+  const pp2 = X.primerPlano($('lienzo'), { n: 5, tipo: 'bokeh', color: '#8FD8FF', semilla: 27, prof: [2.0, 2.8], blur: [26, 42], op: [0.08, 0.18] });
+  const cam = $('cam');
+
+  return (t) => {
+    X.camara(cam, t, camaras);
+    X.profundidad($('fondo'), 0.7);
+    X.desenfoqueFondo($('fondo'), { base: 2, porZoom: 8 });
+    pp1(t); pp2(t); grano(t);
+    $('barra').style.width = (100 * t / X.dur).toFixed(2) + '%';
+
+    // ---- S1: teléfono que respira medio plegado → se abre → (final) se vuelve a abrir
+    let a = 40 + 7 * Math.sin(t * 1.3);
+    a = X.lerp(a, 0, t < A.abre - 0.1 ? 0 : X.C.natural((t - (A.abre - 0.1)) / 0.9));
+    if (t > A.cristal) a = 0;
+    if (t > A.bisagra + 1) { a = 72; a = X.lerp(a, 0, t < A.abre2 - 0.15 ? 0 : X.C.natural((t - (A.abre2 - 0.15)) / 1.0)); }
+    pliega(a, t);
+    X.anima($('titular'), t, { entra: -1, dur: 0.5, sale: A.duo - 0.25, desde: { y: -40, blur: 18, s: 0.94 }, curva: 'firme' });
+    X.anima($('pDuo'), t, { entra: A.duo, dur: 0.6, sale: A.cristal - 0.3, desde: { y: -30, blur: 14, s: 0.9 }, curva: 'blando', mueve: { x: -0 } });
+    const la = t < A.mitad - 0.05 ? 0 : X.C.blando((t - (A.mitad - 0.05)) / 0.55) * (1 - X.C.in(X.seg(t, A.cristal - 0.25, A.cristal + 0.1)));
+    lupa.dibuja(t, { x: 790, y: 700, mira: [540, 760], a: la });
+    X.anima(eLupa.g, t, { entra: A.mitad + 0.1, dur: 0.5, sale: A.cristal - 0.3, desde: { y: 20, blur: 10, s: 0.9 }, curva: 'blando' });
+    X.anima(e76.g, t, { entra: A.abre + 0.3, dur: 0.5, sale: A.cristal - 0.3, desde: { y: 30, blur: 10, s: 0.9 }, curva: 'blando' });
+
+    // ---- S2: vidrio rígido que se raja · lámina que se curva
+    const empuje = t < A.doblarlo - 0.2 ? 0 : X.C.inOut(X.seg(t, A.doblarlo - 0.2, A.raja));
+    const roto = t >= A.raja;
+    const sag = roto ? 0 : 26 * empuje + (empuje > 0.85 ? 2 * Math.sin(t * 90) : 0);
+    vEntero.setAttribute('d', `M${XA} ${YV} Q${C2} ${YV + 2 * sag} ${XB} ${YV} L${XB} ${YV + TV} Q${C2} ${YV + TV + 2 * sag} ${XA} ${YV + TV} Z`);
+    vEntero.style.display = roto ? 'none' : ''; trozoI.style.display = trozoD.style.display = roto ? '' : 'none';
+    const caida = roto ? X.C.blando((t - A.raja) / 0.7) : 0;
+    trozoI.setAttribute('transform', `rotate(${(16 * caida).toFixed(2)} ${XA} ${YV + TV})`); trozoD.setAttribute('transform', `rotate(${(-16 * caida).toFixed(2)} ${XB} ${YV + TV})`);
+    grietas.forEach((g, i) => { X.traza(g, t, A.raja - 0.06 + i * 0.015, 0.22, 'out'); g.style.opacity = roto ? (0.9 * (1 - X.seg(t, A.raja + 0.25, A.raja + 0.9))).toFixed(3) : '0'; });
+    ondaVidrio.dibuja(t, A.raja);
+    empujador.setAttribute('transform', `translate(0 ${(2 * sag + (roto ? 50 * caida : 0) - 30 + 30 * Math.min(1, empuje * 4)).toFixed(1)})`);
+    const fsag = 150 * (t < A.doblarlo - 0.2 ? 0 : X.C.natural((t - (A.doblarlo - 0.2)) / 1.3));
+    film.setAttribute('d', `M${XA} ${YF} Q${C2} ${YF + 2 * fsag} ${XB} ${YF} L${XB} ${YF + 20} Q${C2} ${YF + 20 + 2 * fsag} ${XA} ${YF + 20} Z`);
+    filmLuz.setAttribute('d', `M${XA} ${YF + 4} Q${C2} ${YF + 4 + 2 * fsag} ${XB} ${YF + 4}`);
+    X.anima(eVidrio.g, t, { entra: A.cristal + 0.1, dur: 0.5, desde: { x: -40, y: 0, blur: 10 }, curva: 'blando' });
+    X.anima(eFlex.g, t, { entra: A.doblarlo, dur: 0.5, desde: { x: -40, y: 0, blur: 10 }, curva: 'blando' });
+    X.anima(xRaja, t, { entra: A.raja + 0.05, dur: 0.5, desde: { s: 0.3, y: 0, blur: 10 }, curva: 'blando' });
+    X.anima(okFlex, t, { entra: A.raja + 0.25, dur: 0.5, desde: { s: 0.3, y: 0, blur: 10 }, curva: 'blando' });
+    X.anima($('pRaja'), t, { entra: A.raja + 0.05, dur: 0.5, sale: A.truco - 0.1, desde: { y: -30, blur: 14, s: 0.9 }, curva: 'blando' });
+
+    // ---- S3: las capas se separan
+    const ex = t < A.dentro - 0.15 ? 0 : X.C.natural((t - (A.dentro - 0.15)) / 0.9);
+    X.anima($('pDentro'), t, { entra: A.truco + 0.1, dur: 0.5, sale: A.encima - 0.3, desde: { y: -30, blur: 14, s: 0.9 }, curva: 'blando' });
+    capas.forEach((c, i) => {
+      const dy = X.lerp(c.yc - c.y, 0, ex);
+      let dx = 0, op = 1;
+      if (c.id === 'poli') { const entra = t < A.plastico - 0.1 ? 0 : X.C.natural((t - (A.plastico - 0.1)) / 0.7); dx = X.lerp(-900, 0, entra); op = entra > 0 ? 1 : 0;
+        const fa = (t < A.vidrio - 0.1 ? 0 : X.C.blando((t - (A.vidrio - 0.1)) / 0.5)) * (1 - X.C.in(X.seg(t, A.plastico - 0.1, A.plastico + 0.3)));
+        c.fantasma.w.setAttribute('transform', `translate(0 ${(dy - 40 * (1 - fa)).toFixed(1)})`); c.fantasma.w.style.opacity = X.limita(fa).toFixed(3);
+        X.anima(c.xFant, t, { entra: A.vidrio + 0.1, dur: 0.45, desde: { s: 0.3, y: 0, blur: 8 }, curva: 'blando' });
+        const ola = entra > 0 && entra < 1.2 ? 14 * Math.sin((t - A.plastico) * 12) * Math.exp(-2.5 * (t - A.plastico)) : 0;
+        c.L.g.setAttribute('transform', `skewY(${(ola * 0.25).toFixed(2)})`); }
+      c.L.w.setAttribute('transform', `translate(${dx.toFixed(1)} ${dy.toFixed(1)})`); c.L.w.style.opacity = op;
+      // etiquetas: aparecen al separarse; la que se nombra, en grande
+      const tEti = c.id === 'poli' ? A.poli : A.dentro + 0.25 + i * 0.07;
+      X.anima(c.E.g, t, { entra: tEti, dur: 0.5, desde: { x: -30, y: 0, blur: 10, s: 0.92 }, curva: 'blando' });
+    });
+    const foco = t < A.pixeles ? null : t < A.vidrio ? 'pix' : t < A.encima ? 'poli' : 'cristal';
+    capas.forEach((c) => { c.E.g.style.opacity = c.E.g.style.opacity === '' ? (foco && foco !== c.id && t < A.fino ? '0.5' : '') : c.E.g.style.opacity; });
+    P3.pix.brillo.setAttribute('opacity', (0.85 * X.C.suave(X.seg(t, A.pixeles, A.pixeles + 0.4)) * (0.75 + 0.25 * Math.sin(t * 5)) * (1 - X.seg(t, A.vidrio, A.vidrio + 0.6))).toFixed(3));
+    const es = X.seg(t, A.encima, A.encima + 1.4); P3.cristal.espec.setAttribute('opacity', (es > 0 && es < 1 ? Math.sin(Math.PI * es) : 0).toFixed(3));
+    P3.cristal.espec.setAttribute('transform', `translate(${(-500 + 1000 * es).toFixed(1)} 0)`);
+    X.anima(cota, t, { entra: A.treinta - 0.1, dur: 0.5, desde: { s: 0.6, y: 0, blur: 10 }, curva: 'blando' });
+    X.anima($('cMicras'), t, { entra: A.treinta - 0.1, dur: 0.55, sale: A.curioso - 0.3, desde: { y: -40, blur: 16, s: 0.9 }, curva: 'firme' });
+    contador.dibuja(t, A.treinta - 0.05, 1.0); if ($('nMicras').lastChild.nodeType === 3 || !$('nMicras').querySelector('span')) $('nMicras').innerHTML = $('nMicras').textContent.replace(/[^\d]/g, '') + '<span> µm</span>';
+    dMicras.dibuja(t, A.micras);
+
+    // ---- S4: sección que se dobla
+    const kFino = (t < A.sedobla - 0.25 ? 0 : X.C.natural((t - (A.sedobla - 0.25)) / 0.9)) * (1.25 / L4);
+    const grueso = t < A.curioso - 0.15 ? 0 : X.C.firme((t - (A.curioso - 0.15)) / 0.8);
+    const kU = (t < A.doblar ? 0 : X.C.natural((t - A.doblar) / 1.2)) * (Math.PI * 0.9 / L4);
+    const k = grueso > 0 ? X.lerp(kFino * (1 - X.limita(grueso * 1.4)), 0, 0) + kU : kFino;
+    fino.setAttribute('d', tira(-11 * (1 - grueso) - 60 * grueso, 11 * (1 - grueso) - 44 * grueso, k));
+    fino.style.opacity = grueso >= 1 ? '0' : '1';
+    banda.forEach((b, i) => { const [n1, n2] = capas4[i], gs = X.limita((grueso - i * 0.08) / 0.7); b.setAttribute('d', tira(n1 * gs, n2 * gs, k)); b.style.opacity = gs.toFixed(3); });
+    const rv = X.seg(t, A.doblar, A.doblar + 0.6) * (1 - 0);
+    rayas.forEach((r, i) => { const s = -L4 / 2 + (i + 0.5) * L4 / 17, p = pt(s, -60, k), q = pt(s, 60, k); r.setAttribute('d', `M${p[0].toFixed(1)} ${p[1].toFixed(1)} L${q[0].toFixed(1)} ${q[1].toFixed(1)}`); r.style.opacity = (0.6 * rv).toFixed(3); });
+    const fF = X.C.suave(X.seg(t, A.estira - 0.1, A.estira + 0.4)), fD = X.C.suave(X.seg(t, A.aprieta - 0.1, A.aprieta + 0.4));
+    const late = 1 + 0.08 * Math.sin(t * 7);
+    flechasFuera.innerHTML = fF > 0 ? [-300, -150, 0, 150, 300].map((s) => flechita(s, 86 * late, k, 1, '#FF5A5F')).join('') : ''; flechasFuera.style.opacity = fF.toFixed(3);
+    flechasDentro.innerHTML = fD > 0 ? [-250, -125, 0, 125, 250].map((s) => flechita(s, -84, k, -1, '#4FB3FF')).join('') : ''; flechasDentro.style.opacity = fD.toFixed(3);
+    X.anima(eEstira.g, t, { entra: A.estira, dur: 0.5, desde: { y: 30, blur: 10, s: 0.9 }, curva: 'blando' });
+    X.anima(eAprieta.g, t, { entra: A.aprieta, dur: 0.5, desde: { y: -30, blur: 10, s: 0.9 }, curva: 'blando' });
+    X.anima(okFino, t, { entra: A.sedobla + 0.2, dur: 0.5, sale: A.curioso - 0.2, desde: { s: 0.3, y: 0, blur: 10 }, curva: 'blando' });
+    neutro.setAttribute('d', linea(0, k)); X.traza(neutro, t, A.linea - 0.05, 0.9, 'inOut'); neutroSombra.setAttribute('d', linea(0, k)); X.traza(neutroSombra, t, A.linea - 0.05, 0.9, 'inOut');
+    neutro.setAttribute('stroke-width', (12 + 3 * Math.sin(t * 6)).toFixed(2));
+    X.anima($('tEje'), t, { entra: A.eje - 0.05, dur: 0.6, sale: A.bisagra - 0.35, desde: { y: -40, blur: 16, s: 0.9 }, curva: 'firme' });
+    dEje.dibuja(t, A.eje + 0.4);
+    const mv = t < A.capas ? 0 : X.C.natural((t - A.capas) / 0.9);
+    const pc = X.lerp(-27, 0, mv);
+    pixMovil.setAttribute('d', tira(pc - 7, pc + 7, k)); pixMovil.style.opacity = X.seg(t, A.capas - 0.2, A.capas).toFixed(3);
+    pixBrillo.setAttribute('d', linea(pc, k)); pixBrillo.setAttribute('opacity', (0.55 * mv * (0.7 + 0.3 * Math.sin(t * 6))).toFixed(3));
+    X.anima(ePix.g, t, { entra: A.capas + 0.4, dur: 0.5, desde: { y: 30, blur: 10, s: 0.9 }, curva: 'blando' });
+    $('tinte').style.opacity = (0.75 * X.C.suave(X.seg(t, A.curioso - 0.2, A.curioso + 0.3)) * (1 - X.C.suave(X.seg(t, A.bisagra - 0.4, A.bisagra + 0.2)))).toFixed(3);
+
+    // ---- S5: bisagra con engranajes · pico contra gota
+    X.anima($('pBisagra'), t, { entra: A.bisagra, dur: 0.5, sale: A.poreso - 0.3, desde: { y: -30, blur: 14, s: 0.9 }, curva: 'blando' });
+    const giro = 220 * X.C.inOut(X.seg(t, A.bisagra - 0.3, A.gota + 0.4)) + 8 * t;
+    gears.forEach((g, i) => g.setAttribute('transform', `rotate(${((i % 2 ? -1 : 1) * giro).toFixed(2)})`));
+    const pP = X.C.inOut(X.seg(t, A.pico - 0.5, A.pico + 0.35)), pG = X.C.inOut(X.seg(t, A.gota - 0.9, A.gota + 0.05));
+    pPico.dibuja(pP); pGota.dibuja(pG);
+    pPico.pant.setAttribute('stroke', pP > 0.95 ? '#FF5A5F' : '#7FE3FF'); pGota.pant.setAttribute('stroke', pG > 0.95 ? '#5BE49B' : '#7FE3FF');
+    chispa.dibuja(t, A.pico + 0.3); ondaGota.dibuja(t, A.gota + 0.05);
+    gotaHalo.setAttribute('opacity', (0.8 * X.C.suave(X.seg(t, A.gota, A.gota + 0.4))).toFixed(3));
+    X.anima(ePico.g, t, { entra: A.bisagra + 0.4, dur: 0.5, desde: { y: 30, blur: 10, s: 0.9 }, curva: 'blando' });
+    X.anima(eGota.g, t, { entra: A.bisagra + 0.55, dur: 0.5, desde: { y: 30, blur: 10, s: 0.9 }, curva: 'blando' });
+    X.anima(xPico, t, { entra: A.pico + 0.35, dur: 0.5, desde: { s: 0.3, y: 0, blur: 10 }, curva: 'blando' });
+    X.anima(okGota, t, { entra: A.gota + 0.05, dur: 0.5, desde: { s: 0.3, y: 0, blur: 10 }, curva: 'blando' });
+
+    // ---- final
+    X.anima($('pFin'), t, { entra: A.abre2 + 0.2, dur: 0.6, desde: { y: -30, blur: 14, s: 0.9 }, curva: 'blando' });
+    dFin.dibuja(t, A.romperse2);
+    subs.dibuja(t);
+  };
+});
+</script></body></html>

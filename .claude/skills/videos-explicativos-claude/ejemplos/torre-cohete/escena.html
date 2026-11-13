@@ -1,0 +1,446 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><title>Torre atrapa cohete</title>
+<link rel="stylesheet" href="motor/explica.css">
+<script src="voz/timeline.js"></script>
+<script src="motor/explica.js"></script>
+<script src="motor/materiales.js"></script>
+<style>
+  #lienzo { background: #120E1E; }
+  .callout { position: absolute; padding: 14px 26px 14px 20px; border-radius: 20px; background: rgba(18,14,26,.62); backdrop-filter: blur(10px);
+    border: 2px solid rgba(255,255,255,.16); font-family: 'Bricolage'; font-weight: 700; font-size: 62px; letter-spacing: -1px; white-space: nowrap;
+    box-shadow: 0 18px 40px -12px rgba(0,0,0,.7), inset 0 1px 0 rgba(255,255,255,.18); display: flex; align-items: center; gap: 16px; z-index: 30; }
+  .callout .dot { width: 22px; height: 22px; border-radius: 50%; flex: none; box-shadow: 0 0 16px currentColor; }
+  .callout small { font-family: 'Mono'; font-size: 26px; letter-spacing: 3px; color: rgba(243,238,230,.6); display: block; font-weight: 700; margin-bottom: 2px; }
+  .estado { position: absolute; left: 50%; top: 190px; transform: translateX(-50%); padding: 16px 32px; border-radius: 999px; font-family: 'Mono'; font-weight: 700;
+    font-size: 36px; letter-spacing: 2px; white-space: nowrap; box-shadow: 0 14px 30px -10px rgba(0,0,0,.6); background: rgba(18,14,26,.66); backdrop-filter: blur(8px);
+    border: 2px solid rgba(255,255,255,.16); z-index: 30; }
+  .estado b { color: var(--acento); font-size: 54px; margin-left: 10px; letter-spacing: -1px; }
+  .card { position: absolute; padding: 26px 30px; border-radius: 30px; background: rgba(18,14,26,.66); backdrop-filter: blur(12px); border: 2px solid rgba(255,255,255,.14);
+    box-shadow: 0 30px 60px -20px rgba(0,0,0,.8), inset 0 1px 0 rgba(255,255,255,.18); z-index: 30; }
+  .mono { font-family: 'Mono'; font-weight: 700; letter-spacing: 3px; color: rgba(243,238,230,.6); font-size: 28px; }
+  .big { font-family: 'Bricolage'; font-weight: 700; font-size: 120px; letter-spacing: -4px; line-height: .95; }
+  .wtag { font-family: 'Bricolage'; font-weight: 700; fill: #FFF4E8; letter-spacing: -2px; paint-order: stroke; stroke: rgba(10,8,16,.55); stroke-width: 10px; }
+  .wtag.ac { fill: var(--acento); }
+  .wmono { font-family: 'Mono'; font-weight: 700; fill: rgba(255,244,232,.75); letter-spacing: 6px; paint-order: stroke; stroke: rgba(10,8,16,.55); stroke-width: 8px; }
+  #plano { position: absolute; inset: 0; z-index: 20; clip-path: circle(0px at 50% 45%); }
+  #plano svg { position: absolute; inset: 0; width: 1080px; height: 1920px; }
+  .bp { fill: none; stroke: #E8F3FF; stroke-width: 6; stroke-linecap: round; stroke-linejoin: round; }
+  .bpt { font-family: 'Bricolage'; font-weight: 700; fill: #E8F3FF; letter-spacing: -1px; }
+  .bpm { font-family: 'Mono'; font-weight: 700; fill: rgba(232,243,255,.7); letter-spacing: 4px; }
+  .titular { text-shadow: 0 10px 40px rgba(0,0,0,.65), 0 0 2px rgba(0,0,0,.6); z-index: 30; }
+</style></head>
+<body><div id="lienzo">
+  <svg id="mundo-svg" viewBox="0 0 1080 1920"><defs>
+    <linearGradient id="g-cielo" gradientUnits="userSpaceOnUse" x1="0" y1="-7000" x2="0" y2="2420">
+      <stop offset="0" stop-color="#04030A"/><stop offset=".40" stop-color="#0F0C26"/><stop offset=".66" stop-color="#2A1A48"/>
+      <stop offset=".80" stop-color="#5C2B5E"/><stop offset=".90" stop-color="#B4486B"/><stop offset=".955" stop-color="#F07B58"/><stop offset="1" stop-color="#FFC57E"/></linearGradient>
+    <radialGradient id="g-sol"><stop offset="0" stop-color="#FFF7DC"/><stop offset=".55" stop-color="#FFD48A"/><stop offset="1" stop-color="#FF9A55"/></radialGradient>
+    <radialGradient id="g-halo"><stop offset="0" stop-color="#FFB16A" stop-opacity=".75"/><stop offset=".35" stop-color="#FF8A5B" stop-opacity=".28"/><stop offset="1" stop-color="#FF8A5B" stop-opacity="0"/></radialGradient>
+    <linearGradient id="g-mar" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#7A3A5C"/><stop offset="1" stop-color="#1E1426"/></linearGradient>
+    <linearGradient id="g-suelo" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#3A2A30"/><stop offset=".25" stop-color="#21181F"/><stop offset="1" stop-color="#110C12"/></linearGradient>
+    <linearGradient id="g-acero" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#F2A57C"/><stop offset=".07" stop-color="#8B8E96"/><stop offset=".33" stop-color="#D7DAE0"/>
+      <stop offset=".43" stop-color="#F4F6F8"/><stop offset=".7" stop-color="#9DA3AC"/><stop offset="1" stop-color="#3C414A"/></linearGradient>
+    <linearGradient id="g-hollin" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#1E1714" stop-opacity="0"/><stop offset=".6" stop-color="#2A1F1A" stop-opacity=".45"/><stop offset="1" stop-color="#140F0D" stop-opacity=".85"/></linearGradient>
+    <linearGradient id="g-viga" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#C98A6C"/><stop offset=".12" stop-color="#4C4752"/><stop offset="1" stop-color="#26222B"/></linearGradient>
+    <linearGradient id="g-llama" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#FFFFFF"/><stop offset=".18" stop-color="#FFF1B8"/><stop offset=".45" stop-color="#FFB347"/>
+      <stop offset=".75" stop-color="#FF6A2B" stop-opacity=".75"/><stop offset="1" stop-color="#FF3D1F" stop-opacity="0"/></linearGradient>
+    <radialGradient id="g-fuego"><stop offset="0" stop-color="#FFD27A" stop-opacity=".9"/><stop offset=".4" stop-color="#FF8A3C" stop-opacity=".35"/><stop offset="1" stop-color="#FF6A2B" stop-opacity="0"/></radialGradient>
+    <linearGradient id="g-nube" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#FFC6A8"/><stop offset=".5" stop-color="#C9708A"/><stop offset="1" stop-color="#4A2A55"/></linearGradient>
+    <pattern id="p-rejilla" width="12" height="12" patternUnits="userSpaceOnUse"><rect width="12" height="12" fill="#2E2D33"/><path d="M0 0 L12 12 M12 0 L0 12" stroke="#9095A0" stroke-width="2.6"/></pattern>
+    <pattern id="p-teja" width="18" height="16" patternUnits="userSpaceOnUse"><rect width="18" height="16" fill="#16151A"/><path d="M0 8 L4.5 0 L13.5 0 L18 8 L13.5 16 L4.5 16 Z" fill="none" stroke="#2C2B33" stroke-width="1.6"/></pattern>
+    <!-- PROPULSOR (Super Heavy) · origen = centro de la base · 72 m = 1008 px (14 px por metro) -->
+    <g id="dibB">
+      <rect x="-63" y="-1008" width="126" height="1008" fill="url(#g-acero)" filter="url(#m-metal)"/>
+      <rect x="-63" y="-640" width="126" height="640" fill="url(#g-hollin)"/>
+      <g stroke="rgba(0,0,0,.2)" stroke-width="2"><path d="M-63 -900H63M-63 -840H63M-63 -780H63M-63 -720H63M-63 -660H63M-63 -600H63M-63 -540H63M-63 -480H63M-63 -420H63M-63 -360H63M-63 -300H63M-63 -240H63M-63 -180H63M-63 -120H63"/></g>
+      <rect x="22" y="-990" width="12" height="944" fill="#5D616A" opacity=".75"/>
+      <rect x="-63" y="-1008" width="126" height="50" fill="#29282E"/>
+      <g fill="#0C0B0E"><rect x="-52" y="-998" width="12" height="30" rx="3"/><rect x="-30" y="-998" width="12" height="30" rx="3"/><rect x="-8" y="-998" width="12" height="30" rx="3"/><rect x="14" y="-998" width="12" height="30" rx="3"/><rect x="36" y="-998" width="12" height="30" rx="3"/></g>
+      <rect x="-114" y="-936" width="51" height="64" fill="url(#p-rejilla)" stroke="#232228" stroke-width="4"/>
+      <rect x="63" y="-936" width="51" height="64" fill="url(#p-rejilla)" stroke="#232228" stroke-width="4"/>
+      <rect x="-26" y="-936" width="52" height="58" fill="url(#p-rejilla)" stroke="#232228" stroke-width="4" opacity=".9"/>
+      <rect id="pinD" x="62" y="-866" width="26" height="18" rx="5" fill="#FF8A5B" stroke="#1A1A1E" stroke-width="2"/>
+      <rect x="-88" y="-866" width="26" height="18" rx="5" fill="#FF8A5B" stroke="#1A1A1E" stroke-width="2"/>
+      <rect x="-66" y="-46" width="132" height="46" rx="6" fill="#36353B"/>
+      <g fill="#4A4A52" stroke="#1A191D" stroke-width="2"><path d="M-58 0 L-50 0 L-46 30 L-62 30 Z"/><path d="M-40 0 L-26 0 L-22 34 L-44 34 Z"/><path d="M-14 0 L0 0 L4 36 L-18 36 Z" transform="translate(7 0)"/><path d="M26 0 L40 0 L44 34 L22 34 Z"/><path d="M50 0 L58 0 L62 30 L46 30 Z"/></g>
+    </g>
+    <!-- NAVE (Starship) · 52 m = 728 px -->
+    <g id="dibN">
+      <path d="M-63 0 L-63 -520 C-63 -640 -30 -728 0 -728 C30 -728 63 -640 63 -520 L63 0 Z" fill="url(#g-acero)" filter="url(#m-metal)"/>
+      <path d="M-63 0 L-63 -520 C-63 -636 -32 -724 -8 -728 L-8 0 Z" fill="url(#p-teja)" opacity=".95"/>
+      <g fill="#2A292F" stroke="#141317" stroke-width="2"><path d="M-62 -30 L-110 -12 L-110 -170 L-62 -214 Z"/><path d="M62 -30 L110 -12 L110 -170 L62 -214 Z"/>
+        <path d="M-56 -560 L-92 -548 L-84 -640 L-50 -662 Z"/><path d="M56 -560 L92 -548 L84 -640 L50 -662 Z"/></g>
+      <rect x="54" y="-590" width="24" height="16" rx="5" fill="url(#g-cromo)"/><rect x="-78" y="-590" width="24" height="16" rx="5" fill="url(#g-cromo)"/>
+      <rect x="-63" y="-36" width="126" height="36" fill="#323137"/>
+      <g fill="#4A4A52" stroke="#1A191D" stroke-width="2"><path d="M-40 0 L-20 0 L-14 40 L-46 40 Z"/><path d="M-10 0 L10 0 L16 40 L-16 40 Z"/><path d="M20 0 L40 0 L46 40 L14 40 Z"/></g>
+    </g>
+    <!-- llama de motor (hacia abajo desde y=0, largo base 300) -->
+    <g id="dibLlama">
+      <ellipse cx="0" cy="150" rx="210" ry="300" fill="url(#g-fuego)"/>
+      <path d="M-62 0 C-76 90 -34 236 0 310 C34 236 76 90 62 0 Z" fill="url(#g-llama)" style="filter:blur(3px)"/>
+      <path d="M-34 0 C-38 50 -14 150 0 196 C14 150 38 50 34 0 Z" fill="#FFF9E6" opacity=".95" style="filter:blur(2px)"/>
+      <ellipse cx="0" cy="62" rx="20" ry="13" fill="#fff" opacity=".7"/><ellipse cx="0" cy="124" rx="15" ry="10" fill="#fff" opacity=".5"/>
+    </g>
+  </defs>
+  <g id="cam">
+    <!-- FONDO (lejos): cielo de atardecer, sol, mar, nubes y estrellas. Se mueve menos que la cámara y se desenfoca con el zoom -->
+    <g id="fondo">
+      <rect x="-3500" y="-7600" width="9000" height="12000" fill="url(#g-cielo)"/>
+      <g id="estrellas"></g>
+      <circle cx="160" cy="2250" r="900" fill="url(#g-halo)"/>
+      <circle cx="160" cy="2250" r="105" fill="url(#g-sol)" style="filter:blur(1.5px)"/>
+      <rect x="-3500" y="2400" width="9000" height="1800" fill="url(#g-mar)"/>
+      <g id="reflejo" fill="#FFC88A" opacity=".55"></g>
+      <g id="nubesLejos"></g>
+    </g>
+    <!-- EL MUNDO NÍTIDO -->
+    <g id="contenido">
+      <rect x="-2500" y="2600" width="7000" height="1800" fill="url(#g-suelo)" filter="url(#m-hormigon)"/>
+      <rect x="-2500" y="2596" width="7000" height="8" fill="#E89A72" opacity=".35"/>
+      <g id="tanques"></g>
+      <g id="torre1"></g><g id="torre2"></g>
+      <g id="mesa1"></g><g id="mesa2"></g>
+      <ellipse id="luzSuelo" cx="800" cy="2330" rx="520" ry="90" fill="url(#g-fuego)" opacity="0"/>
+      <g id="brazo1b"></g><g id="brazo2b"></g>
+      <g id="booster"><use href="#dibB"/><g id="llamaB"><use href="#dibLlama"/></g></g>
+      <g id="nave"><use href="#dibN"/><g id="llamaN"><use href="#dibLlama"/></g></g>
+      <g id="humo1"></g><g id="humo2"></g>
+      <g id="brazo1f"></g><g id="brazo2f"></g>
+      <!-- regla de altura -->
+      <g id="medB"><path id="medBl" class="l" d="" style="stroke:#FFF4E8;stroke-width:8"/><text id="medBt" class="wtag ac" font-size="120"></text></g>
+      <g id="medT"><path id="medTl" d="M250 556 L250 2600 M205 556 L295 556 M205 2600 L295 2600" fill="none" stroke="#FFF4E8" stroke-width="10" stroke-linecap="round"/>
+        <text id="medTt" class="wtag ac" x="215" y="1560" font-size="124" text-anchor="end">0 M</text><text class="wmono" x="215" y="1430" font-size="46" text-anchor="end">TORRE</text></g>
+      <!-- trayectoria (esquema en el cielo) -->
+      <g id="tray">
+        <path id="r1" d="M800 2150 C800 900 950 -200 1300 -1000" fill="none" stroke="#FFF4E8" stroke-width="14" stroke-dasharray="1 34" stroke-linecap="round" opacity=".9"/>
+        <path id="r2" d="M1300 -1000 C1450 -1300 1650 -1700 1950 -2150" fill="none" stroke="#FFF4E8" stroke-width="14" stroke-linecap="round" opacity=".55"/>
+        <path id="r3" d="M1300 -1000 C1260 -1500 950 -1450 900 -800 C870 -300 820 300 800 1100" fill="none" stroke="none"/>
+        <g id="flechaR"></g>
+        <g transform="translate(1300 -1000)"><g id="sepOnda"></g></g>
+        <g id="icoS"><g id="icoB"><use href="#dibB"/><g id="icoBl"><use href="#dibLlama"/></g></g><g id="icoN"><use href="#dibN"/><g id="icoNl"><use href="#dibLlama"/></g></g></g>
+        <g id="tSep"><text class="wmono" x="1440" y="-960" font-size="84">SEPARACIÓN</text><text class="wtag ac" x="1440" y="-780" font-size="200">70 KM</text></g>
+        <g id="tNave"><text class="wtag" x="1600" y="-1600" font-size="170" text-anchor="end">NAVE</text></g>
+        <g id="tProp"><text class="wtag ac" x="640" y="-1300" font-size="160" text-anchor="middle">PROPULSOR</text></g>
+      </g>
+      <g id="vueltaF"></g>
+    </g>
+    <g id="lupaG"></g>
+    <g id="ondas"></g>
+  </g></svg>
+
+  <!-- giro: plano técnico (sin patas) -->
+  <div id="plano"><svg viewBox="0 0 1080 1920">
+    <defs><pattern id="p-bp" width="60" height="60" patternUnits="userSpaceOnUse"><path d="M60 0 L0 0 L0 60" fill="none" stroke="rgba(190,220,255,.13)" stroke-width="2"/></pattern>
+      <radialGradient id="g-bp" cx=".5" cy=".4" r=".8"><stop offset="0" stop-color="#1D5A9C"/><stop offset="1" stop-color="#0A2546"/></radialGradient></defs>
+    <rect width="1080" height="1920" fill="url(#g-bp)"/><rect width="1080" height="1920" fill="url(#p-bp)"/>
+    <text class="bpm" x="540" y="330" font-size="34" text-anchor="middle">PLANO · SUPER HEAVY</text>
+    <g id="bpCohete">
+      <rect class="bp" x="482" y="400" width="116" height="900" rx="6"/>
+      <path class="bp" d="M482 450 H598 M482 520 H598"/>
+      <rect class="bp" x="434" y="470" width="48" height="56"/><rect class="bp" x="598" y="470" width="48" height="56"/>
+      <path class="bp" d="M494 1300 L488 1336 L512 1336 L506 1300 M532 1300 L526 1340 L554 1340 L548 1300 M574 1300 L568 1336 L592 1336 L586 1300"/>
+    </g>
+    <g id="bpPatas">
+      <path class="bp" style="stroke:#FFD36B;stroke-width:9" d="M484 1120 L300 1400 M260 1400 H340"/>
+      <path class="bp" style="stroke:#FFD36B;stroke-width:9" d="M596 1120 L780 1400 M740 1400 H820"/>
+      <path class="bp" style="stroke:#FFD36B;stroke-width:9;opacity:.7" d="M512 1180 L430 1404 M560 1180 L650 1404"/>
+    </g>
+    <path class="bp" d="M140 1410 H940" style="stroke-dasharray:18 16;opacity:.5"/>
+    <g id="bpPeso"><g transform="translate(850 980)"><g id="bpPesoIn">
+      <path d="M-70 60 L-50 -40 L50 -40 L70 60 Z" fill="#FF5A5F"/><circle cy="-58" r="24" fill="none" stroke="#FF5A5F" stroke-width="12"/>
+      <text class="bpt" y="40" font-size="56" text-anchor="middle" style="fill:#fff">KG</text></g></g>
+      <text class="bpt" x="850" y="1120" font-size="64" text-anchor="middle" style="fill:#FF8A8D">+ PESO</text></g>
+    <g transform="translate(540 1290)"><g id="bpCruz"><path d="M-210 -170 L210 170 M210 -170 L-210 170" stroke="#FF5A5F" stroke-width="30" stroke-linecap="round"/></g></g>
+    <g id="bpCarga">
+      <rect x="230" y="600" width="80" height="700" rx="14" fill="rgba(91,228,155,.12)" stroke="#5BE49B" stroke-width="4"/>
+      <rect id="bpBarra" x="236" y="1294" width="68" height="0" rx="10" fill="#5BE49B"/>
+      <path d="M270 520 L270 440 M240 470 L270 440 L300 470" fill="none" stroke="#5BE49B" stroke-width="12" stroke-linecap="round" stroke-linejoin="round"/>
+      <text class="bpt" x="270" y="400" font-size="72" text-anchor="middle" style="fill:#5BE49B">+ CARGA</text>
+    </g>
+  </svg></div>
+
+  <div id="titular" class="titular" style="top:170px">¿Cómo se atrapa<br><em>un cohete</em>?</div>
+  <div id="cTorre" class="callout" style="left:90px;top:560px"><span class="dot" style="background:var(--acento);color:var(--acento)"></span><div><small>146 METROS</small>LA TORRE</div></div>
+  <div id="cBrazos" class="callout" style="left:520px;top:640px"><span class="dot" style="background:#FFD36B;color:#FFD36B"></span><div><small>DOS BRAZOS</small>GIGANTES</div></div>
+  <div id="cSuper" class="callout" style="left:70px;top:1190px"><span class="dot" style="background:var(--acento);color:var(--acento)"></span><div><small>EL PROPULSOR</small>SUPER HEAVY</div></div>
+  <div id="cStack" class="card" style="left:70px;top:330px;width:330px;display:flex;flex-direction:column;align-items:center;gap:6px">
+    <div class="mono" style="font-size:24px">STARSHIP</div>
+    <svg width="200" height="700" viewBox="-140 -1790 280 1830" style="overflow:visible">
+      <g transform="translate(0 -1008)"><use href="#dibN"/></g><use href="#dibB"/>
+      <rect id="stackHi" x="-80" y="-1022" width="160" height="1040" rx="24" fill="none" stroke="#FF8A5B" stroke-width="14"/>
+      <text class="wtag" x="150" y="-1400" font-size="96">NAVE</text>
+    </svg>
+  </div>
+  <div id="eAlt" class="estado" style="top:190px">ALTITUD<b id="altN">70</b><b style="margin-left:6px;font-size:40px">KM</b></div>
+  <div id="cPalillos" class="callout" style="left:110px;top:560px"><span class="dot" style="background:#FFD36B;color:#FFD36B"></span><div><small>LOS BRAZOS</small>«PALILLOS»</div></div>
+  <div id="cSal" class="callout" style="left:540px;top:1090px"><span class="dot" style="background:var(--acento);color:var(--acento)"></span><div><small>SE APOYA EN</small>SALIENTES</div></div>
+  <div id="cAle" class="callout" style="left:70px;top:620px"><span class="dot" style="background:#9AD3FF;color:#9AD3FF"></span><div><small>JUNTO A LAS</small>ALETAS</div></div>
+  <div id="eReuso" class="estado" style="top:190px;border-color:var(--ok);color:#9CF2C3">↻ LISTO PARA VOLAR</div>
+  <div id="cFecha" class="card" style="left:90px;right:90px;top:170px;text-align:center">
+    <div class="mono">PRIMERA CAPTURA · VUELO 5</div>
+    <div class="big" style="margin-top:8px">13 OCT <span style="color:var(--acento)">2024</span></div>
+  </div>
+  <div id="tFinal" class="titular" style="top:170px">Ahora…<br><em>la nave</em></div>
+  <div id="eProx" class="estado" style="top:420px;border-color:#FFD36B;color:#FFE29A">PRÓXIMO INTENTO</div>
+  <div id="subs"></div>
+  <div id="barra" class="progreso"></div>
+</div>
+<script>
+X.listo(() => {
+  const $ = (id) => document.getElementById(id), NS = 'http://www.w3.org/2000/svg';
+  const mk = (tag, at, padre) => { const e = document.createElementNS(NS, tag); Object.entries(at).forEach(([k, v]) => e.setAttribute(k, v)); if (padre) padre.appendChild(e); return e; };
+  const svg = $('mundo-svg');
+  X.defs(svg); X.materiales(svg);
+
+  // ---------- el sitio: estrellas, reflejo del sol, nubes ----------
+  const az = X.azar(7);
+  for (let i = 0; i < 160; i++) { const y = -7000 + az() * 6400; mk('circle', { cx: -3000 + az() * 8000, cy: y, r: 2 + az() * 4.5, fill: '#FFF', opacity: (0.25 + az() * 0.6) * X.limita((-800 - y) / 2500) }, $('estrellas')); }
+  for (let i = 0; i < 14; i++) mk('rect', { x: 160 - 60 - az() * 160 + i * 6, y: 2412 + i * 14, width: 120 + az() * 220 - i * 6, height: 5, rx: 2.5 }, $('reflejo'));
+  const nube = (padre, cx, cy, w, sem, op = 1) => { const r = X.azar(sem), g = mk('g', { opacity: op, style: 'filter:blur(7px)' }, padre);
+    for (let k = 0; k < 7; k++) mk('ellipse', { cx: cx + (r() - 0.5) * w, cy: cy + (r() - 0.5) * w * 0.12, rx: w * (0.16 + r() * 0.2), ry: w * (0.05 + r() * 0.06), fill: 'url(#g-nube)' }, g); return g; };
+  [[-600, 1900, 1400, 1, .9], [1500, 1750, 1600, 2, .85], [400, 1350, 1100, 3, .7], [2400, 1250, 1200, 4, .7], [-1200, 900, 1300, 5, .55], [1100, 650, 1500, 6, .5],
+   [2600, 300, 1400, 7, .45], [-500, -200, 1600, 8, .35], [1800, -900, 1500, 9, .3]].forEach(([x, y, w, s, o]) => nube($('nubesLejos'), x, y, w, s, o));
+
+  // ---------- torres de celosía de acero ----------
+  const torre = (g, x0, w, y0, y1) => {
+    mk('rect', { x: x0 + 8, y: y0, width: w - 16, height: y1 - y0, fill: '#1A1620', opacity: 0.55 }, g);
+    const col = mk('g', { filter: 'url(#m-metal)' }, g);
+    let d = '';
+    for (let y = y0; y < y1; y += 64) d += `M${x0} ${y} L${x0 + w} ${y + 64} M${x0 + w} ${y} L${x0} ${y + 64} `;
+    mk('path', { d, stroke: '#3B3542', 'stroke-width': 8, fill: 'none' }, col);
+    let h = ''; for (let y = y0; y <= y1; y += 64) h += `M${x0} ${y} H${x0 + w} `;
+    mk('path', { d: h, stroke: '#4A4452', 'stroke-width': 12, fill: 'none' }, col);
+    [[x0, 26, 'url(#g-viga)'], [x0 + w / 2 - 10, 20, '#2F2A36'], [x0 + w - 26, 26, '#3A3442']].forEach(([x, ww, f]) => mk('rect', { x, y: y0, width: ww, height: y1 - y0, fill: f }, col));
+    mk('rect', { x: x0 - 6, y: y0 - 24, width: w + 12, height: 30, rx: 6, fill: '#4D4756' }, col);
+    mk('rect', { x: x0 + w / 2 - 6, y: y0 - 190, width: 12, height: 170, fill: '#3A3442' }, col);
+    mk('rect', { x: x0, y: y0, width: 5, height: y1 - y0, fill: '#FFB58A', opacity: 0.45 }, g);   // luz del atardecer en el canto
+    return mk('circle', { cx: x0 + w / 2, cy: y0 - 196, r: 12, fill: '#FF4A3D', filter: 'url(#f-brillo)' }, g);
+  };
+  const baliza1 = torre($('torre1'), 300, 240, 556, 2600), baliza2 = torre($('torre2'), 1600, 240, 556, 2600);
+  const carro1 = mk('rect', { x: 286, width: 268, height: 96, rx: 10, fill: '#5A5462', filter: 'url(#m-metal)' }, $('torre1'));
+  const carro2 = mk('rect', { x: 1586, width: 268, height: 96, rx: 10, fill: '#5A5462', filter: 'url(#m-metal)' }, $('torre2'));
+  const mesa = (g, cx) => { const m = mk('g', { filter: 'url(#m-hormigon)' }, g);
+    [-130, -17, 96].forEach((dx) => mk('rect', { x: cx + dx, y: 2330, width: 34, height: 270, fill: '#5C5862' }, m));
+    mk('rect', { x: cx - 150, y: 2292, width: 300, height: 40, rx: 6, fill: '#77737D' }, m); mk('ellipse', { cx, cy: 2296, rx: 92, ry: 10, fill: '#141216' }, m);
+    X.contacto(g, cx, 2604, 260, 30, 0.9); };
+  mesa($('mesa1'), 800); mesa($('mesa2'), 2100);
+  // tanques al fondo (dan escala)
+  [[1120, 150, 70], [1200, 190, 70], [1290, 150, 64], [1370, 120, 56], [-260, 140, 70], [-170, 110, 60]].forEach(([x, hgt, r]) => {
+    mk('rect', { x: x - r / 2, y: 2600 - hgt, width: r, height: hgt, rx: 8, fill: '#3A333E', filter: 'url(#m-metal)' }, $('tanques')); });
+
+  // ---------- brazos («palillos») ----------
+  const brazo = (g) => { const b = mk('g', {}, g), cuerpo = mk('path', { fill: '#6E6A76', filter: 'url(#m-metal)' }, b),
+    riel = mk('path', { fill: 'none', stroke: '#B9B4C0', 'stroke-width': 6, 'stroke-linecap': 'round' }, b), cel = mk('path', { fill: 'none', stroke: '#3C3843', 'stroke-width': 5 }, b),
+    punta = mk('rect', { width: 40, height: 40, x: -20, y: -20, rx: 8, fill: '#8F8A96', opacity: 0.95 }, b);
+    return (px, py, ex, ey, grueso = 1) => { const L = Math.hypot(ex - px, ey - py), a = Math.atan2(ey - py, ex - px) * 57.2958, h0 = 22 * grueso, h1 = 14 * grueso;
+      b.setAttribute('transform', `translate(${px.toFixed(1)} ${py.toFixed(1)}) rotate(${a.toFixed(2)})`);
+      cuerpo.setAttribute('d', `M0 ${-h0} L${L} ${-h1} L${L} ${h1} L0 ${h0} Z`); riel.setAttribute('d', `M4 ${-h0 + 3} L${L - 4} ${-h1 + 3}`);
+      let c = ''; for (let x = 30; x < L - 10; x += 46) c += `M${x} ${-h0 * 0.7} L${x + 23} ${h0 * 0.7} L${x + 46} ${-h0 * 0.7} `; cel.setAttribute('d', c);
+      punta.setAttribute('transform', `translate(${(L - 26).toFixed(1)} 0)`); }; };
+  const b1f = brazo($('brazo1f')), b1b = brazo($('brazo1b')), b2f = brazo($('brazo2f')), b2b = brazo($('brazo2b'));
+
+  // ---------- anclas ----------
+  const A = {
+    atrapa: X.debe(X.en('atrapa'), 'atrapa'), m72: X.debe(X.en('72'), '72'), torre: X.debe(X.en('torre'), 'torre'), brazos: X.debe(X.en('brazos'), 'brazos'),
+    super: X.debe(X.en('Super Heavy'), 'Super Heavy'), starship: X.debe(X.en('Starship'), 'Starship'), despega: X.debe(X.en('Despega'), 'Despega'),
+    suelta: X.debe(X.en('suelta'), 'suelta'), vuelta: X.debe(X.en('media vuelta'), 'media vuelta'), frenando: X.debe(X.en('frenando'), 'frenando'),
+    quieto: X.debe(X.en('quieto'), 'quieto'), m146: X.debe(X.en('146'), '146'), torre146: X.debe(X.en('Una torre', 2), 'Una torre (2.ª)'), brazos2: X.debe(X.en('Sus brazos'), 'Sus brazos'),
+    palillos: X.debe(X.en('palillos'), 'palillos'), cierran: X.debe(X.en('cierran'), 'cierran'), colgado: X.debe(X.en('colgado'), 'colgado'), salientes: X.debe(X.en('salientes'), 'salientes'),
+    aletas: X.debe(X.en('aletas'), 'aletas'), aterriza: X.debe(X.en('aterriza'), 'aterriza'), patas: X.debe(X.en('patas'), 'patas'), pesan: X.debe(X.en('pesan'), 'pesan'),
+    sin: X.debe(X.en('Sin ellas'), 'Sin ellas'), carga: X.debe(X.en('carga'), 'carga'), vuelve: X.debe(X.en('vuelve directo'), 'vuelve directo'), volar: X.debe(X.en('volar'), 'volar'),
+    lograron: X.debe(X.en('lograron'), 'lograron'), octubre: X.debe(X.en('octubre'), 'octubre'), ahora: X.debe(X.en('ahora'), 'ahora'), nave: X.debe(X.en('nave', 2), 'nave (2.ª)'),
+    alvuelo: X.debe(X.en('al vuelo', 2), 'al vuelo (2.º)'),
+  };
+  const camaras = [
+    { t: 0, x: 790, y: 1430, z: 0.62, r: -1, rx: 5, ry: -9 },
+    { t: A.torre + 0.1, x: 640, y: 1420, z: 0.5, r: 0, rx: 3, ry: 6, dur: 1.2 },
+    { t: A.brazos + 0.1, x: 700, y: 1380, z: 0.72, r: 0.5, rx: 8, ry: -6, dur: 1.0 },
+    { t: A.super, x: 820, y: 1300, z: 0.85, r: 0.6, rx: -3, ry: 10, dur: 1.1 },
+    { t: A.despega + 0.1, x: 1150, y: 260, z: 0.36, r: 0, rx: 0, ry: 0, dur: 1.0 },
+    { t: A.vuelta, x: 1180, y: -150, z: 0.42, r: -1, rx: 4, ry: -6, dur: 1.0 },
+    { t: A.frenando, x: 850, y: 500, z: 0.55, r: 0.5, rx: 7, ry: -12, dur: 1.1 },
+    { t: A.quieto - 0.5, x: 770, y: 1380, z: 0.66, r: 0, rx: 4, ry: -8, dur: 1.2 },
+    { t: A.torre146, x: 600, y: 1500, z: 0.47, r: 0, rx: 0, ry: 6, dur: 1.2 },
+    { t: A.brazos2, x: 740, y: 1340, z: 1.1, r: 0.8, rx: 10, ry: -10, dur: 1.1 },
+    { t: A.colgado, x: 800, y: 1300, z: 1.25, r: 0, rx: 6, ry: 8, dur: 1.0 },
+    { t: A.aletas - 0.1, x: 830, y: 1280, z: 1.45, r: -0.5, rx: 4, ry: -6, dur: 0.9 },
+    { t: A.aterriza, x: 650, y: 1520, z: 0.52, r: 0, rx: 0, ry: 0, dur: 1.0 },
+    { t: A.vuelve, x: 700, y: 1560, z: 0.6, r: 0, rx: 4, ry: 8, dur: 1.2 },
+    { t: A.octubre, x: 640, y: 1620, z: 0.5, r: 0.4, rx: -2, ry: -4, dur: 1.2 },
+    { t: A.ahora, x: 1980, y: 1000, z: 0.6, r: 0.8, rx: -4, ry: 10, dur: 1.2 },
+    { t: A.nave, x: 2060, y: 1150, z: 0.7, r: 0, rx: 3, ry: -7, dur: 1.3 },
+  ];
+  camaras.slice(1).forEach((c) => X.sonido(c.t - (c.dur ?? 1.1) * 0.6, 'swoosh', 0.55));
+  [A.torre, A.brazos, A.super, A.starship, A.palillos, A.salientes, A.aletas, A.m146, A.carga].forEach((t) => X.sonido(t, 'pop', 0.5));
+  X.sonido(A.cierran + 0.25, 'click', 1); X.sonido(A.colgado + 0.15, 'click', 0.8); X.sonido(A.pesan, 'feedback', 0.6);
+  X.sonido(A.octubre, 'notificacion', 0.6); X.sonido(A.volar, 'feedback', 0.4); X.sonido(A.suelta, 'click', 0.6);
+
+  // ---------- recursos ----------
+  const ondaCierre = X.onda($('ondas'), { x: 870, y: 1330, color: '#FFD36B', radio: 300, ancho: 14 });
+  const ondaSep = X.onda($('sepOnda'), { x: 0, y: 0, color: '#FFF4E8', radio: 320, ancho: 16 });
+  const ondaCarga = X.onda($('ondas'), { x: 800, y: 2300, color: '#5BE49B', radio: 380, ancho: 14 });
+  const flechaR = X.flecha($('flechaR'), { d: $('r3').getAttribute('d'), color: '#FF8A5B', ancho: 18 });
+  const flechaV = X.flecha($('vueltaF'), { d: 'M1060 2050 C1180 1500 1080 900 800 860 C560 830 470 1000 470 1180', color: '#5BE49B', ancho: 20 });
+  const lupa = X.lupa($('lupaG'), { fuente: '#contenido', r: 160, zoom: 2.6 });
+  const contT = X.contador($('medTt'), { desde: 0, hasta: 146, sufijo: ' M' });
+  const contB = X.contador($('medBt'), { desde: 0, hasta: 72, sufijo: ' M' });
+  const contAlt = X.contador($('altN'), { desde: 70, hasta: 0 });
+  const dest = X.destello($('cFecha'));
+  const pathPt = (el) => { const L = el.getTotalLength(); return (u) => { const a = el.getPointAtLength(L * X.limita(u)), b = el.getPointAtLength(L * X.limita(u + 0.01)); return [a.x, a.y, Math.atan2(b.y - a.y, b.x - a.x) * 57.2958 + 90]; }; };
+  const R1 = pathPt($('r1')), R2 = pathPt($('r2')), R3 = pathPt($('r3'));
+
+  // humo del motor: se abre a los lados donde la llama choca con la mesa o el suelo, o se queda detrás en el aire
+  const F = { b: { x: 800, tip: 0, on: 0 }, n: { x: 2100, tip: 0, on: 0 } };
+  const rutaHumo = (f, lado) => (u) => { const surf = Math.abs(f.x - 800) < 160 || Math.abs(f.x - 2100) < 160 ? 2300 : 2600, imp = f.tip > surf - 60;
+    const y0 = imp ? surf - 30 : f.tip; return imp ? [f.x + lado * (40 + 620 * u), y0 - 70 * u - 120 * u * u] : [f.x + lado * 160 * u, y0 + 120 * u - 260 * u * u]; };
+  const humos = [
+    X.humo($('humo1'), { ruta: rutaHumo(F.b, -1), n: 26, vida: 2.4, tam: [110, 290], color: '#F4A06E', op: 0.6, semilla: 3, viento: [-40, -60] }),
+    X.humo($('humo1'), { ruta: rutaHumo(F.b, 1), n: 26, vida: 2.8, tam: [120, 320], color: '#A4949C', op: 0.6, semilla: 8, viento: [50, -70] }),
+    X.humo($('humo2'), { ruta: rutaHumo(F.n, -1), n: 16, vida: 2.2, tam: [60, 170], color: '#F4A06E', op: 0.45, semilla: 13, viento: [-40, -60] }),
+    X.humo($('humo2'), { ruta: rutaHumo(F.n, 1), n: 16, vida: 2.4, tam: [60, 170], color: '#9C8C94', op: 0.5, semilla: 17, viento: [50, -70] }),
+  ];
+  const llama = (el, t, largo, a, sem) => { const f = 1 + 0.07 * X.ruidoF(t * 9, sem) + 0.04 * Math.sin(t * 47 + sem);
+    el.setAttribute('transform', `scale(${(0.92 + 0.08 * f).toFixed(3)} ${(largo / 300 * f).toFixed(3)})`); el.setAttribute('opacity', a.toFixed(3)); };
+
+  // ---------- primer plano: nubes y destellos muy cerca de la cámara ----------
+  const ppN = X.primerPlano($('lienzo'), { n: 5, semilla: 21, prof: [1.8, 2.6], blur: [18, 30], op: [0.35, 0.6], tipo: (g, i, r) => {
+    for (let k = 0; k < 5; k++) mk('ellipse', { cx: (r() - 0.5) * 520, cy: (r() - 0.5) * 80, rx: 160 + r() * 200, ry: 60 + r() * 60, fill: i % 2 ? '#F7B79A' : '#B9668A' }, g); } });
+  const svgN = $('lienzo').lastElementChild;
+  const ppL = X.primerPlano($('lienzo'), { n: 6, tipo: 'bokeh', color: '#FFD2A0', semilla: 37, prof: [1.7, 2.4], blur: [24, 40], op: [0.1, 0.24] });
+  const svgL = $('lienzo').lastElementChild;
+  const grano = X.grano($('lienzo'), 0.075);
+  const subs = X.subtitulos($('subs'), { max: 3, y: 1470, claves: ['atrapa', '72', 'torre', 'brazos', 'Super', 'Heavy', 'propulsor', 'Starship', 'nave', 'vuelta', 'frenando', 'motores', 'quieto', '146', 'palillos', 'cierran', 'colgado', 'salientes', 'aletas', 'patas', 'pesan', 'carga', 'volar', 'octubre', '2024', 'vuelo'] });
+
+  const cam = $('cam'), B = $('booster'), N = $('nave');
+  const ARM = 1330, PIN = 855;  // altura de los brazos y distancia de los salientes a la base del propulsor
+  return (t) => {
+    X.camara(cam, t, camaras);
+    X.profundidad($('fondo'), 0.7);
+    X.desenfoqueFondo($('fondo'), { base: 1, porZoom: 7, max: 12 });
+    grano(t); ppN(t); ppL(t);
+    const cielo = (t < A.torre146 - 0.4) || t > A.ahora - 0.4;  // nubes en primer plano solo en los planos de cielo
+    svgN.style.opacity = (cielo ? 1 : 0) * (t > A.despega - 0.3 && t < A.frenando - 0.2 ? 0.5 : 1);
+    $('barra').style.width = (100 * t / X.dur).toFixed(2) + '%';
+    baliza1.setAttribute('opacity', (Math.sin(t * 5) > 0.2 ? 1 : 0.15)); baliza2.setAttribute('opacity', (Math.sin(t * 5 + 2) > 0.2 ? 1 : 0.15));
+
+    // ---- propulsor: posición de la base (x, y) según el momento ----
+    let by, bop = 1, fuego = 1, flamaL = 330;
+    const hover = ARM + PIN - 18;
+    if (t < A.despega) by = X.lerp(1640, 1840, X.C.suave(X.seg(t, 0, A.despega))), flamaL = 360;
+    else if (t < A.frenando - 0.2) { by = -1400; bop = 0; }
+    else if (t < A.quieto + 0.3) { const u = X.seg(t, A.frenando - 0.2, A.quieto + 0.3); by = X.lerp(-1100, hover, 1 - Math.pow(1 - u, 2.6)); flamaL = 300 + 200 * (1 - u); }
+    else by = hover + 6 * Math.sin(t * 2.2);
+    bop = t < A.despega ? 1 - X.seg(t, A.despega - 0.15, A.despega + 0.15) : t < A.frenando - 0.2 ? 0 : X.seg(t, A.frenando - 0.2, A.frenando);
+    // se cuelga de los brazos: cae 18 px y rebota; apaga motores
+    const cuelga = t < A.colgado ? 0 : X.C.blando((t - A.colgado) / 0.5);
+    if (t >= A.colgado) by = X.lerp(hover + 6 * Math.sin(t * 2.2), ARM + PIN, X.limita(cuelga * 1.0)) + (cuelga > 1 ? 0 : 0);
+    fuego = 1 - X.C.suave(X.seg(t, A.colgado - 0.1, A.colgado + 0.35));
+    // listo para volar otra vez: los brazos bajan el propulsor a la mesa
+    const baja = X.C.firme(X.seg(t, A.volar - 0.3, A.volar + 1.4) * 1.0);
+    const armY = ARM + 135 * baja;
+    if (t >= A.colgado) by = X.lerp(by, ARM + PIN + 135, baja);
+    B.setAttribute('transform', `translate(800 ${by.toFixed(1)})`); B.style.opacity = bop.toFixed(3);
+    llama($('llamaB'), t, flamaL, fuego, 1);
+    F.b.x = 800; F.b.tip = by + 40 + flamaL * 0.8; F.b.on = fuego * bop;
+    $('luzSuelo').setAttribute('opacity', (F.b.on * X.limita(1 - (2300 - F.b.tip) / 500) * 0.9).toFixed(3));
+    humos[0].dibuja(t, -1, t < A.despega ? A.despega - 0.3 : A.colgado); humos[1].dibuja(t, -1, t < A.despega ? A.despega - 0.3 : A.colgado);
+    if (t > A.despega - 0.3 && t < A.frenando) { $('humo1').style.opacity = 0; } else $('humo1').style.opacity = 1;
+
+    // ---- brazos de la torre 1: abiertos → se cierran en «cierran» ----
+    const k = t < A.cierran ? 0 : X.C.blando((t - A.cierran) / 0.55);
+    const saludo = 0.25 * Math.sin(Math.PI * X.seg(t, A.brazos, A.brazos + 1.1));
+    const ab = 1 - k + saludo * (t < A.cierran ? 1 : 0);
+    b1b(545, armY - 10, X.lerp(935, 880, ab), X.lerp(armY - 12, armY - 130, ab), 0.9);
+    b1f(545, armY + 10, X.lerp(935, 885, ab), X.lerp(armY + 14, armY + 130, ab), 1.15);
+    carro1.setAttribute('y', armY - 48);
+    ondaCierre.dibuja(t, A.cierran + 0.2);
+    // ---- torre 2 y la nave (final) ----
+    const ARM2 = 1250, kn = X.seg(t, A.ahora - 0.6, A.alvuelo + 1.2);
+    b2b(1845, ARM2 - 10, 2180, ARM2 - 130, 0.9); b2f(1845, ARM2 + 10, 2185, ARM2 + 130, 1.15); carro2.setAttribute('y', ARM2 - 48);
+    const ny = X.lerp(250, ARM2 + 560 - 60, 1 - Math.pow(1 - kn, 2.4));
+    N.setAttribute('transform', `translate(2100 ${ny.toFixed(1)})`); N.style.opacity = t > A.ahora - 0.7 ? 1 : 0;
+    llama($('llamaN'), t, 260 + 160 * (1 - kn), 1, 5);
+    F.n.x = 2100; F.n.tip = ny + 40 + 300; humos[2].dibuja(t, A.ahora - 0.6, null); humos[3].dibuja(t, A.ahora - 0.6, null);
+    $('humo2').style.opacity = t > A.ahora - 0.7 ? 1 : 0;
+
+    // ---- reglas de medida ----
+    const mb = (t >= A.m72 - 0.1 && t < A.torre - 0.1) || (t >= A.m146 + 0.3 && t < A.brazos2 - 0.2);
+    const mbo = X.limita(Math.min(X.seg(t, A.m72 - 0.1, A.m72 + 0.3), 1)) * (t < A.torre ? 1 - X.seg(t, A.torre - 0.4, A.torre - 0.1) : 0)
+      + X.seg(t, A.m146 + 0.3, A.m146 + 0.7) * (1 - X.seg(t, A.brazos2 - 0.5, A.brazos2 - 0.2));
+    $('medB').style.opacity = mbo.toFixed(3);
+    $('medBl').setAttribute('d', `M950 ${(by - 1008).toFixed(1)} L950 ${by.toFixed(1)} M910 ${(by - 1008).toFixed(1)} L990 ${(by - 1008).toFixed(1)} M910 ${by.toFixed(1)} L990 ${by.toFixed(1)}`);
+    $('medBt').setAttribute('x', 985); $('medBt').setAttribute('y', (by - 470).toFixed(1));
+    contB.dibuja(t, t < A.torre ? A.m72 : A.m146 + 0.3, 0.9);
+    const mto = X.seg(t, A.m146 - 0.5, A.m146 - 0.1) * (1 - X.seg(t, A.brazos2 - 0.5, A.brazos2 - 0.2));
+    $('medT').style.opacity = mto.toFixed(3); X.traza($('medTl'), t, A.m146 - 0.5, 0.9, 'inOut'); contT.dibuja(t, A.m146 - 0.3, 1.1);
+
+    // ---- trayectoria: despega, separa, media vuelta ----
+    const tr = t > A.despega - 0.25 && t < A.frenando + 0.6;
+    $('tray').style.opacity = tr ? (X.seg(t, A.despega - 0.25, A.despega) * (1 - X.seg(t, A.frenando, A.frenando + 0.6))).toFixed(3) : 0;
+    if (tr) {
+      X.traza($('r1'), t, A.despega, 0.95, 'inOut');
+      X.traza($('r2'), t, A.suelta + 0.1, 1.2, 'out');
+      const u1 = X.C.inOut(X.seg(t, A.despega, A.despega + 0.95));
+      const S = 0.5;
+      if (t < A.suelta + 0.1) { const [x, y, a] = R1(u1); $('icoS').setAttribute('transform', `translate(${x.toFixed(1)} ${y.toFixed(1)}) rotate(${a.toFixed(1)}) scale(${S})`);
+        $('icoN').setAttribute('transform', 'translate(0 -1008)'); $('icoB').setAttribute('transform', ''); $('icoNl').setAttribute('opacity', 0); llama($('icoBl'), t, 420, 1, 3); }
+      else {
+        const [x0, y0, a0] = R1(1); $('icoS').setAttribute('transform', '');
+        const u2 = X.C.out(X.seg(t, A.suelta + 0.1, A.suelta + 1.5)), [nx, nyy, na] = R2(u2);
+        $('icoN').setAttribute('transform', `translate(${nx.toFixed(1)} ${(nyy).toFixed(1)}) rotate(${na.toFixed(1)}) scale(${S}) translate(0 0)`); $('icoNl').setAttribute('opacity', 1); llama($('icoNl'), t, 380, 1, 4);
+        // propulsor: gira (media vuelta) y vuelve por la flecha
+        const gira = X.C.natural(X.seg(t, A.vuelta - 0.2, A.vuelta + 0.5) * 1.0);
+        const u3 = X.C.inOut(X.seg(t, A.vuelta + 0.4, A.frenando + 0.4));
+        let [bx, byy, ba] = u3 > 0 ? R3(u3) : [x0, y0, a0];
+        const ang = u3 > 0 ? X.lerp(a0 + 180, 0, X.limita(u3 * 1.6)) : a0 + 180 * gira;
+        $('icoB').setAttribute('transform', `translate(${bx.toFixed(1)} ${byy.toFixed(1)}) rotate(${ang.toFixed(1)}) scale(${S}) translate(0 ${(-0).toFixed(0)})`);
+        llama($('icoBl'), t, 300, X.seg(t, A.vuelta, A.vuelta + 0.3) * 0.9, 3);
+        $('icoB').style.opacity = 1 - X.seg(t, A.frenando, A.frenando + 0.5);
+      }
+      flechaR.dibuja(t, A.vuelta + 0.3, 1.0);
+      ondaSep.dibuja(t, A.suelta + 0.05);
+      X.anima($('tSep'), t, { entra: A.suelta + 0.1, dur: 0.6, sale: A.frenando - 0.3, desde: { x: -40, y: 0, blur: 14 }, curva: 'blando' });
+      X.anima($('tNave'), t, { entra: A.suelta + 0.5, dur: 0.6, sale: A.frenando - 0.3, desde: { y: 30, blur: 14 }, curva: 'blando' });
+      X.anima($('tProp'), t, { entra: A.vuelta + 0.2, dur: 0.6, sale: A.frenando + 0.2, desde: { y: 30, blur: 14 }, curva: 'blando' });
+    }
+
+    // ---- callouts y tarjetas ----
+    X.anima($('titular'), t, { entra: -1, dur: 0.6, sale: A.torre - 0.3, desde: { y: -40, blur: 18, s: 0.94 }, curva: 'firme' });
+    X.anima($('cTorre'), t, { entra: A.torre, dur: 0.6, sale: A.super - 0.35, desde: { x: -60, y: 0, blur: 14, s: 0.9 }, curva: 'blando' });
+    X.anima($('cBrazos'), t, { entra: A.brazos, dur: 0.6, sale: A.super - 0.35, desde: { x: 60, y: 0, blur: 14, s: 0.9 }, curva: 'blando' });
+    X.anima($('cSuper'), t, { entra: A.super, dur: 0.6, sale: A.despega - 0.15, desde: { x: 60, y: 0, blur: 14, s: 0.9 }, curva: 'blando' });
+    X.anima($('cStack'), t, { entra: A.starship - 0.1, dur: 0.65, sale: A.despega - 0.1, desde: { x: -60, y: 0, blur: 16, s: 0.92 }, curva: 'firme' });
+    $('stackHi').style.opacity = (0.5 + 0.5 * Math.sin(t * 7)).toFixed(3);
+    X.anima($('eAlt'), t, { entra: A.frenando - 0.1, dur: 0.5, sale: A.quieto + 0.6, desde: { y: -30, blur: 12 }, curva: 'firme' });
+    contAlt.dibuja(t, A.frenando, A.quieto - A.frenando + 0.4);
+    X.anima($('cPalillos'), t, { entra: A.palillos - 0.05, dur: 0.6, sale: A.colgado - 0.2, desde: { x: -60, y: 0, blur: 14, s: 0.9 }, curva: 'blando' });
+    // lupa sobre el saliente que se apoya en el brazo
+    const la = X.C.natural(X.seg(t, A.salientes - 0.15, A.salientes + 0.5)) * (1 - X.C.inOut(X.seg(t, A.aterriza - 0.85, A.aterriza - 0.45)));
+    lupa.el.style.display = la > 0.01 ? '' : 'none';
+    if (la > 0.01) lupa.dibuja(t, { x: 870, y: 950, mira: [868, armY - 6], z: 2.6, a: la });
+    X.anima($('cSal'), t, { entra: A.salientes + 0.1, dur: 0.6, sale: A.aterriza - 0.75, desde: { y: 30, blur: 14, s: 0.9 }, curva: 'blando' });
+    X.anima($('cAle'), t, { entra: A.aletas, dur: 0.6, sale: A.aterriza - 0.75, desde: { x: -60, y: 0, blur: 14, s: 0.9 }, curva: 'blando' });
+
+    // ---- giro: el plano técnico se abre en círculo ----
+    const pa = X.C.inOut(X.seg(t, A.aterriza - 0.35, A.aterriza + 0.35)) * (1 - X.C.inOut(X.seg(t, A.vuelve - 0.3, A.vuelve + 0.35)));
+    $('plano').style.clipPath = `circle(${(pa * 1250).toFixed(1)}px at 50% 45%)`; $('plano').style.display = pa > 0.001 ? '' : 'none';
+    if (pa > 0.001) {
+      document.querySelectorAll('#bpPatas path').forEach((p, i) => X.traza(p, t, A.patas - 0.1 + i * 0.08, 0.6, 'out', A.sin));
+      X.anima($('bpPesoIn'), t, { entra: A.pesan - 0.15, dur: 0.6, sale: A.sin, desde: { y: -380, s: 1, o: 1, blur: 10 }, curva: 'blando' });
+      X.anima($('bpPeso'), t, { entra: A.pesan - 0.15, dur: 0.3, sale: A.sin, desde: { y: 0, blur: 0 } });
+      X.anima($('bpCruz'), t, { entra: A.pesan + 0.25, dur: 0.5, sale: A.sin, desde: { s: 0.4, y: 0, blur: 10 }, curva: 'blando' });
+      X.anima($('bpCarga'), t, { entra: A.sin + 0.2, dur: 0.5, desde: { x: -40, y: 0, blur: 12 }, curva: 'firme' });
+      const hb = 680 * X.C.natural(X.seg(t, A.carga - 0.1, A.carga + 0.7));
+      $('bpBarra').setAttribute('y', (1294 - hb).toFixed(1)); $('bpBarra').setAttribute('height', hb.toFixed(1));
+    }
+    // ---- vuelve a volar ----
+    flechaV.dibuja(t, A.volar - 0.2, 1.1, A.octubre - 0.2);
+    ondaCarga.dibuja(t, A.volar + 0.9);
+    X.anima($('eReuso'), t, { entra: A.volar, dur: 0.55, sale: A.octubre - 0.3, desde: { y: -30, blur: 12 }, curva: 'firme' });
+    X.anima($('cFecha'), t, { entra: A.octubre - 0.1, dur: 0.7, sale: A.ahora - 0.25, desde: { y: -50, blur: 20, s: 0.94 }, curva: 'firme' }); dest.dibuja(t, A.octubre + 0.4, 0.9);
+    X.anima($('tFinal'), t, { entra: A.ahora, dur: 0.6, desde: { y: -40, blur: 18, s: 0.94 }, curva: 'firme' });
+    X.anima($('eProx'), t, { entra: A.nave - 0.1, dur: 0.55, desde: { y: -20, blur: 12, s: 0.9 }, curva: 'blando' });
+    subs.dibuja(t);
+  };
+});
+</script></body></html>

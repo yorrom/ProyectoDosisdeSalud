@@ -1,0 +1,472 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><title>Agua al aceite ardiendo</title>
+<link rel="stylesheet" href="motor/explica.css">
+<script src="voz/timeline.js"></script>
+<script src="motor/explica.js"></script>
+<script src="motor/materiales.js"></script>
+<style>
+  #lienzo { background: radial-gradient(1100px 900px at 50% 36%, #2E241F 0%, #120E0C 78%); }
+  .tag { font-family: 'Bricolage'; font-weight: 700; font-size: 46px; fill: var(--linea); letter-spacing: -1px; }
+  .tag.ac { fill: var(--acento); }
+  .tagp { font-family: 'Mono'; font-weight: 700; font-size: 30px; fill: var(--tenue); letter-spacing: 3px; }
+  .callout { position: absolute; padding: 14px 26px 14px 20px; border-radius: 20px; background: rgba(22,18,18,.78); backdrop-filter: blur(8px);
+    border: 2px solid rgba(255,255,255,.14); font-family: 'Bricolage'; font-weight: 700; font-size: 58px; letter-spacing: -1px; white-space: nowrap;
+    box-shadow: 0 18px 40px -12px rgba(0,0,0,.75), inset 0 1px 0 rgba(255,255,255,.12); display: flex; align-items: center; gap: 16px; }
+  .callout .dot { width: 22px; height: 22px; border-radius: 50%; flex: none; }
+  .callout small { font-family: 'Mono'; font-size: 26px; letter-spacing: 3px; color: var(--tenue); display: block; font-weight: 700; }
+  .pill { position: absolute; left: 50%; transform: translateX(-50%); padding: 16px 32px; border-radius: 999px; font-family: 'Mono'; font-weight: 700;
+    font-size: 36px; letter-spacing: 3px; white-space: nowrap; background: rgba(22,18,18,.85); border: 2px solid var(--tenue2); box-shadow: 0 14px 30px -10px rgba(0,0,0,.6); }
+  .pillw { position: absolute; left: 0; right: 0; top: 190px; display: flex; justify-content: center; }
+  .pillw .pill { position: static; transform: none; }
+  #contadorW { position: absolute; left: 0; right: 0; top: 170px; text-align: center; }
+  #contador { font-family: 'Bricolage'; font-weight: 700; font-size: 210px; line-height: 1; letter-spacing: -6px; color: #EAF6FF;
+    text-shadow: 0 0 40px rgba(143,211,255,.55), 0 14px 40px rgba(0,0,0,.6); display: inline-block; padding: 0 30px; }
+  #contadorW small { display: block; font-family: 'Mono'; font-weight: 700; font-size: 34px; letter-spacing: 5px; color: #9FD6FF; margin-top: 6px; }
+  .card { position: absolute; left: 70px; right: 70px; padding: 30px 36px; border-radius: 30px; background: rgba(22,18,18,.82); backdrop-filter: blur(10px);
+    border: 2px solid rgba(255,255,255,.12); box-shadow: 0 30px 60px -20px rgba(0,0,0,.85), inset 0 1px 0 rgba(255,255,255,.12); }
+  .card h3 { font-family: 'Mono'; font-size: 30px; letter-spacing: 5px; color: var(--tenue); margin-bottom: 10px; }
+  .fila { display: flex; align-items: center; gap: 24px; font-family: 'Bricolage'; font-size: 54px; font-weight: 700; letter-spacing: -1px; margin: 10px 0; }
+  .num { width: 66px; height: 66px; flex: none; border-radius: 50%; background: var(--ok); color: #0E0D11; display: flex; align-items: center; justify-content: center;
+    font-family: 'Mono'; font-size: 34px; box-shadow: 0 0 24px rgba(91,228,155,.45); }
+  .fila.no .num { background: var(--peligro); color: #fff; box-shadow: 0 0 24px rgba(255,90,95,.5); }
+  #flash { position: absolute; inset: 0; pointer-events: none; z-index: 45; mix-blend-mode: screen; opacity: 0;
+    background: radial-gradient(900px 900px at 50% 42%, #FFF6D6 0%, #FFB347 35%, rgba(255,80,20,.4) 65%, transparent 100%); }
+  #tinte { position: absolute; inset: 0; pointer-events: none; z-index: 44; mix-blend-mode: soft-light; opacity: 0; background: #FF5A1F; }
+</style></head>
+<body><div id="lienzo">
+  <svg id="mundo-svg" viewBox="0 0 1080 1920"><defs>
+    <linearGradient id="g-pared" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#3A2E28"/><stop offset="1" stop-color="#4A3B32"/></linearGradient>
+    <linearGradient id="g-sarten" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#2A2D33"/><stop offset=".28" stop-color="#9EA5AF"/><stop offset=".45" stop-color="#5D636C"/><stop offset=".8" stop-color="#3A3E45"/><stop offset="1" stop-color="#1E2025"/></linearGradient>
+    <linearGradient id="g-tapa" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#4A4F57"/><stop offset=".3" stop-color="#E9EDF2"/><stop offset=".5" stop-color="#9AA1AB"/><stop offset="1" stop-color="#3B3F46"/></linearGradient>
+    <radialGradient id="g-aceite" cx=".42" cy=".4" r=".7"><stop offset="0" stop-color="#FFE38A"/><stop offset=".45" stop-color="#F2A92C"/><stop offset="1" stop-color="#9A5208"/></radialGradient>
+    <linearGradient id="g-aceite-v" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#F7B640"/><stop offset=".6" stop-color="#C9780F"/><stop offset="1" stop-color="#7E3F06"/></linearGradient>
+    <linearGradient id="g-llama" x1="0" y1="1" x2="0" y2="0"><stop offset="0" stop-color="#FFF4C2"/><stop offset=".25" stop-color="#FFC23A"/><stop offset=".6" stop-color="#FF7A1A"/><stop offset="1" stop-color="#E8361A" stop-opacity="0"/></linearGradient>
+    <linearGradient id="g-llama-in" x1="0" y1="1" x2="0" y2="0"><stop offset="0" stop-color="#FFFFFF"/><stop offset=".4" stop-color="#FFE27A"/><stop offset="1" stop-color="#FFB02E" stop-opacity="0"/></linearGradient>
+    <radialGradient id="g-fuego"><stop offset="0" stop-color="#FFFBE6"/><stop offset=".25" stop-color="#FFD25A"/><stop offset=".55" stop-color="#FF7B1C"/><stop offset=".8" stop-color="#D2301A" stop-opacity=".7"/><stop offset="1" stop-color="#7A1A10" stop-opacity="0"/></radialGradient>
+    <radialGradient id="g-vapor"><stop offset="0" stop-color="#FFFFFF" stop-opacity=".95"/><stop offset=".6" stop-color="#D8F0FF" stop-opacity=".8"/><stop offset="1" stop-color="#8FD3FF" stop-opacity=".35"/></radialGradient>
+    <radialGradient id="g-halo"><stop offset="0" stop-color="#FFB347" stop-opacity=".55"/><stop offset="1" stop-color="#FF6A1A" stop-opacity="0"/></radialGradient>
+    <radialGradient id="g-gota" cx=".38" cy=".32" r=".75"><stop offset="0" stop-color="#E6F6FF"/><stop offset=".4" stop-color="#6CC2FF"/><stop offset="1" stop-color="#1D6FC4"/></radialGradient>
+    <linearGradient id="g-botella" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#2F4A1E"/><stop offset=".35" stop-color="#7C9A3A"/><stop offset="1" stop-color="#1F3313"/></linearGradient>
+    <clipPath id="clipInt"><path d="M236 905 L274 1064 Q540 1122 806 1064 L844 905 Z"/></clipPath>
+    <clipPath id="clipCorte"><rect id="corteR" x="540" y="700" width="0" height="560"/></clipPath>
+    <clipPath id="clipVaso"><path d="M-60 -116 L60 -116 L50 120 L-50 120 Z"/></clipPath>
+  </defs>
+  <g id="sacude"><g id="cam"><g id="contenido">
+    <!-- fondo: pared de azulejos, campana, estante -->
+    <g id="fondo">
+      <rect x="-900" y="-1000" width="2900" height="2110" fill="url(#g-pared)"/>
+      <g id="azulejos" filter="url(#m-ceramica)"></g>
+      <rect x="-900" y="-1000" width="2900" height="2110" fill="url(#g-luz)"/>
+      <g filter="url(#f-sombra)">
+        <rect x="430" y="-700" width="220" height="560" fill="#8D949E" filter="url(#m-metal)"/>
+        <path d="M250 150 L830 150 L710 -150 L370 -150 Z" fill="url(#g-tapa)" filter="url(#m-metal)"/>
+        <rect x="240" y="140" width="600" height="26" rx="8" fill="#6F7680"/>
+        <rect x="300" y="160" width="480" height="10" rx="5" fill="#FFE2B0" opacity=".55"/>
+      </g>
+      <!-- botella de aceite -->
+      <g filter="url(#f-sombra-s)">
+        <path d="M978 1092 L978 900 Q978 860 1000 845 L1000 790 L1030 790 L1030 845 Q1052 860 1052 900 L1052 1092 Z" fill="url(#g-botella)" filter="url(#m-cristal)"/>
+        <rect x="996" y="770" width="38" height="26" rx="5" fill="#C9A03A"/>
+        <rect x="984" y="940" width="62" height="80" rx="6" fill="#EADBB5" filter="url(#m-papel)"/>
+      </g>
+    </g>
+    <!-- encimera y muebles -->
+    <g id="encimera">
+      <rect x="-900" y="1100" width="2900" height="90" fill="#8C8178" filter="url(#m-hormigon)"/>
+      <rect x="-900" y="1100" width="2900" height="8" fill="#B9AEA4"/>
+      <rect x="-900" y="1190" width="2900" height="1400" fill="#4A3426" filter="url(#m-madera)"/>
+      <rect x="-900" y="1190" width="2900" height="30" fill="#000" opacity=".35"/>
+      <g fill="none" stroke="rgba(0,0,0,.45)" stroke-width="6"><path d="M60 1240 L60 2400 M540 1240 L540 2400 M1020 1240 L1020 2400 M-420 1240 L-420 2400"/><path d="M-900 1560 L2000 1560"/></g>
+      <g fill="url(#g-cromo)"><rect x="240" y="1380" width="120" height="16" rx="8"/><rect x="720" y="1380" width="120" height="16" rx="8"/></g>
+      <!-- vitrocerámica -->
+      <path d="M170 1088 L910 1088 L950 1140 L130 1140 Z" fill="#101014" filter="url(#m-cristal)"/>
+      <path d="M130 1140 L950 1140 L950 1150 L130 1150 Z" fill="#5E646D"/>
+      <ellipse id="anillo2" cx="540" cy="1112" rx="300" ry="22" fill="none" stroke="#FF3A1A" stroke-width="5" opacity=".7"/>
+      <g transform="translate(838 1126)"><g id="boton">
+        <circle r="17" fill="none" stroke="#FF4A2A" stroke-width="4" id="botonAro"/><path d="M0 -12 L0 -2" stroke="#FF4A2A" stroke-width="4" stroke-linecap="round" id="botonPalo"/>
+      </g></g>
+      <g fill="#FF4A2A" opacity=".55" id="puntos"><rect x="866" y="1122" width="18" height="6" rx="3"/><rect x="890" y="1122" width="18" height="6" rx="3"/></g>
+    </g>
+    <!-- sartén -->
+    <g id="sarten">
+      <ellipse cx="540" cy="1112" rx="320" ry="28" fill="#000" opacity=".55" style="filter:blur(10px)"/>
+      <ellipse id="anillo" cx="540" cy="1110" rx="290" ry="24" fill="none" stroke="#FF5A1F" stroke-width="16" filter="url(#f-brillo)"/>
+      <!-- mango -->
+      <path d="M846 902 L1100 846" stroke="#1C1A1D" stroke-width="44" stroke-linecap="round" filter="url(#m-plastico)"/>
+      <path d="M846 902 L900 890" stroke="#8C939C" stroke-width="40" stroke-linecap="round"/>
+      <circle cx="1080" cy="851" r="8" fill="#000" opacity=".6"/>
+      <!-- interior y aceite -->
+      <ellipse cx="540" cy="880" rx="320" ry="56" fill="#24262B"/>
+      <ellipse cx="540" cy="884" rx="306" ry="48" fill="#17181B"/>
+      <ellipse id="aceiteSup" cx="540" cy="905" rx="302" ry="40" fill="url(#g-aceite)"/>
+      <ellipse id="aceiteBrillo" cx="470" cy="896" rx="120" ry="10" fill="#FFF3C8" opacity=".5"/>
+      <!-- cuerpo delantero (se abre en corte) -->
+      <g id="frente">
+        <path d="M220 880 L262 1080 Q540 1140 818 1080 L860 880 A320 56 0 0 1 220 880 Z" fill="url(#g-sarten)" filter="url(#m-metal)"/>
+        <path d="M232 900 Q540 990 848 900" fill="none" stroke="#FFFFFF" stroke-opacity=".18" stroke-width="6"/>
+      </g>
+      <!-- corte: sección de la sartén por dentro -->
+      <g id="seccion" clip-path="url(#clipCorte)">
+        <path d="M220 880 L262 1080 Q540 1140 818 1080 L860 880 L844 905 L806 1064 Q540 1122 274 1064 L236 905 Z" fill="#7A818B" filter="url(#m-metal)"/>
+        <path d="M220 880 L262 1080 Q540 1140 818 1080 L860 880" fill="none" stroke="#C7CDD5" stroke-width="4"/>
+        <g clip-path="url(#clipInt)">
+          <rect x="200" y="880" width="680" height="260" fill="url(#g-aceite-v)" filter="url(#m-relieve)"/>
+          <g id="conveccion" fill="none" stroke="#FFE6A6" stroke-width="4" opacity=".35"></g>
+          <g id="burbujitas"></g>
+          <g id="gotaSec"><circle id="gotaC" cx="0" cy="0" r="20" fill="url(#g-gota)"/><ellipse cx="-6" cy="-7" rx="6" ry="4" fill="#fff" opacity=".8" id="gotaB"/></g>
+          <g id="burbuja"><circle id="burC" r="10" fill="url(#g-vapor)" stroke="#FFFFFF" stroke-width="4" stroke-opacity=".7"/></g>
+        </g>
+        <path d="M236 905 L274 1064 Q540 1122 806 1064 L844 905" fill="none" stroke="#2A2C31" stroke-width="5"/>
+        <path id="corteBorde" d="M220 880 L262 1080 Q540 1140 818 1080 L860 880" fill="none" stroke="#FFB38A" stroke-width="5" stroke-dasharray="14 12" opacity=".8"/>
+      </g>
+      <path d="M220 880 A320 56 0 0 1 860 880" fill="none" stroke="#C2C8D0" stroke-width="8" opacity=".55"/>
+      <path d="M860 880 A320 56 0 0 1 220 880" fill="none" stroke="#DCE1E7" stroke-width="10"/>
+    </g>
+    <!-- columna de aceite empujada por el vapor -->
+    <path id="geiser" fill="url(#g-aceite-v)" d="" opacity="0"/>
+    <!-- llamas -->
+    <g id="llamasW" style="mix-blend-mode:screen">
+      <ellipse id="haloLlamas" cx="540" cy="820" rx="420" ry="260" fill="url(#g-halo)"/>
+      <g id="llamas"></g>
+    </g>
+    <g id="humoOscuro"></g>
+    <!-- gotas de aceite que salen volando -->
+    <g id="gotasAire"></g>
+    <!-- bola de fuego -->
+    <g id="bola" style="mix-blend-mode:screen;filter:blur(7px)"></g>
+    <g id="humoBola"></g>
+    <!-- vaso de agua -->
+    <g id="vasoW"><g id="vaso">
+      <g clip-path="url(#clipVaso)"><g id="aguaVasoW"><path id="aguaVaso" fill="url(#g-agua)" opacity=".85" d=""/></g></g>
+      <path d="M-66 -124 L66 -124 L54 128 L-54 128 Z" fill="#BFE3FF" fill-opacity=".14" stroke="#EAF6FF" stroke-opacity=".75" stroke-width="5" filter="url(#m-cristal)"/>
+      <path d="M-50 -110 L-40 112" stroke="#fff" stroke-opacity=".45" stroke-width="9" stroke-linecap="round"/>
+      <ellipse cx="0" cy="-124" rx="66" ry="12" fill="none" stroke="#EAF6FF" stroke-opacity=".8" stroke-width="4"/>
+      <ellipse cx="0" cy="128" rx="54" ry="9" fill="#BFE3FF" fill-opacity=".3"/>
+    </g></g>
+    <path id="chorro" fill="none" stroke="url(#g-agua)" stroke-width="20" stroke-linecap="round" d="" opacity="0"/>
+    <g id="gotaCae"><circle id="gotaCaeC" r="18" fill="url(#g-gota)"/><ellipse id="gotaCaeB" rx="5" ry="4" fill="#fff" opacity=".8"/></g>
+    <!-- tapa -->
+    <g id="tapaW"><g id="tapa">
+      <ellipse cx="0" cy="4" rx="336" ry="40" fill="#000" opacity=".35" style="filter:blur(8px)"/>
+      <path d="M-334 0 Q-318 -128 0 -140 Q318 -128 334 0 Q0 40 -334 0 Z" fill="url(#g-tapa)" filter="url(#m-metal)"/>
+      <path d="M-334 0 Q0 46 334 0" fill="none" stroke="#2C2F35" stroke-width="10"/>
+      <path d="M-250 -60 Q-160 -116 -40 -124" fill="none" stroke="#fff" stroke-width="10" stroke-linecap="round" opacity=".5"/>
+      <rect x="-56" y="-176" width="112" height="40" rx="18" fill="#1C1A1D" filter="url(#m-plastico)"/>
+      <rect x="-14" y="-140" width="28" height="12" fill="#7D848E"/>
+    </g></g>
+    <!-- oxígeno -->
+    <g id="oxi"></g>
+    <!-- termómetro -->
+    <g transform="translate(960 0)"><g id="termo">
+      <rect x="-34" y="360" width="68" height="440" rx="34" fill="#D9EEFF" fill-opacity=".16" stroke="#EAF6FF" stroke-opacity=".7" stroke-width="5" filter="url(#m-cristal)"/>
+      <circle cx="0" cy="820" r="54" fill="#E8361A" filter="url(#m-relieve)"/>
+      <rect id="termoCol" x="-14" y="780" width="28" height="40" rx="14" fill="#FF4A1F"/>
+      <g stroke="#EAF6FF" stroke-opacity=".6" stroke-width="4"><path d="M-34 720 L-16 720 M-34 660 L-16 660 M-34 600 L-16 600 M-34 540 L-16 540 M-34 480 L-16 480 M-34 420 L-16 420"/></g>
+      <path d="M-50 640 L50 640" stroke="#4FB3FF" stroke-width="7" stroke-linecap="round"/>
+      <text class="tag" x="-70" y="656" text-anchor="end" style="fill:#8FD3FF">100 °C</text>
+      <text class="tagp" x="-70" y="694" text-anchor="end" style="fill:#8FD3FF">AGUA HIERVE</text>
+    </g></g>
+    <g transform="translate(905 470)"><g id="termoTop"><text class="tag ac" x="0" y="0" text-anchor="end">ACEITE</text><text class="tag" x="0" y="50" text-anchor="end">MUCHO MÁS</text></g></g>
+    <!-- marcas -->
+    <g transform="translate(700 640)"><g id="noMover">
+      <path d="M-120 0 L-50 0 M120 0 L50 0" stroke="#FF5A5F" stroke-width="12" stroke-linecap="round"/>
+      <path d="M-100 -22 L-124 0 L-100 22 M100 -22 L124 0 L100 22" fill="none" stroke="#FF5A5F" stroke-width="12" stroke-linecap="round" stroke-linejoin="round"/>
+      <circle r="40" fill="#FF5A5F" filter="url(#f-brillo)"/><path d="M-15 -15 L15 15 M15 -15 L-15 15" stroke="#fff" stroke-width="10" stroke-linecap="round"/>
+    </g></g>
+    <g transform="translate(540 700)"><g id="tic"><circle r="58" fill="var(--ok)" filter="url(#f-brillo)"/><path d="M-25 2 L-7 20 L27 -17" fill="none" stroke="#0E0D11" stroke-width="12" stroke-linecap="round" stroke-linejoin="round"/></g></g>
+    <g id="ondas"></g>
+  </g><g id="capaLupa"></g></g></g></svg>
+
+  <div id="tinte"></div>
+  <div id="flash"></div>
+  <div id="titular" class="titular" style="top:170px;text-shadow:0 10px 40px rgba(0,0,0,.7)">¿Agua al aceite <em>ardiendo</em>?</div>
+  <div class="pillw"><div id="pLenta" class="pill" style="border-color:#8FD3FF;color:#BFE6FF">⏪ A CÁMARA LENTA</div></div>
+  <div class="pillw"><div id="pBola" class="pill" style="border-color:var(--peligro);color:#FF9A8D;background:rgba(80,14,10,.85);font-size:44px">BOLA DE FUEGO</div></div>
+  <div id="cDensa" class="callout" style="left:70px;top:560px"><span class="dot" style="background:var(--agua)"></span><div><small>EL AGUA ES MÁS</small>DENSA</div></div>
+  <div id="cFlota" class="callout" style="left:600px;top:560px"><span class="dot" style="background:#F2A92C"></span><div><small>EL ACEITE</small>FLOTA</div></div>
+  <div id="cGolpe" class="callout" style="left:80px;top:600px"><span class="dot" style="background:#fff"></span><div><small>EN EL FONDO</small>HIERVE</div></div>
+  <div id="contadorW"><span id="contador">×1</span><small>MÁS VOLUMEN COMO VAPOR</small></div>
+  <div id="cPiston" class="callout" style="left:80px;top:520px"><span class="dot" style="background:#EAF6FF"></span><div><small>EMPUJA COMO UN</small>PISTÓN</div></div>
+  <div id="solucion" class="card" style="top:140px">
+    <h3>QUÉ HACER</h3>
+    <div class="fila" id="f1"><div class="num">1</div><div>Apaga el fuego</div></div>
+    <div class="fila" id="f2"><div class="num">2</div><div>Tapa la sartén</div></div>
+    <div class="fila no" id="f3"><div class="num">✕</div><div>No la muevas</div></div>
+  </div>
+  <div id="cOxi" class="callout" style="left:290px;top:560px"><span class="dot" style="background:#8FD3FF"></span><div><small>LA LLAMA SE QUEDA</small>SIN OXÍGENO</div></div>
+  <div class="pillw" style="top:200px"><div id="pFinal" class="pill" style="border-color:var(--agua);color:#BFE6FF;font-size:40px">EL AGUA, PARA BEBER</div></div>
+  <div id="subs"></div>
+  <div id="barra" class="progreso"></div>
+</div>
+<script>
+X.listo(() => {
+  const $ = (id) => document.getElementById(id), NS = 'http://www.w3.org/2000/svg';
+  const svg = $('mundo-svg');
+  X.defs(svg); X.materiales(svg);
+  const mk = (tag, attrs, padre) => { const e = document.createElementNS(NS, tag); Object.entries(attrs).forEach(([k, v]) => e.setAttribute(k, v)); if (padre) padre.appendChild(e); return e; };
+  // azulejos tipo metro (ladrillo)
+  for (let y = -1000, f = 0; y < 1100; y += 64, f++) for (let x = -900 + (f % 2) * 64; x < 2000; x += 128)
+    mk('rect', { x: x + 3, y: y + 3, width: 122, height: 58, rx: 8, fill: f % 7 === 3 && x % 3 === 0 ? '#D9CDBE' : '#E8DFD2', opacity: 0.2 }, $('azulejos'));
+
+  const A = {
+    sarten: X.debe(X.en('sartén'), 'sartén'), explota: X.debe(X.en('explota'), 'explota'), porque: X.debe(X.en('por qué'), 'por qué'),
+    arde: X.debe(X.en('arde'), 'arde'), grados: X.debe(X.en('grados'), 'grados'), densa: X.debe(X.en('densa'), 'densa'),
+    hunde: X.debe(X.en('hunde'), 'hunde'), fondo: X.debe(X.en('fondo'), 'fondo'), hierve: X.debe(X.en('hierve'), 'hierve'),
+    golpe: X.debe(X.en('golpe'), 'golpe'), vapor: X.debe(X.en('vapor'), 'vapor'), ocupa: X.debe(X.en('ocupa'), 'ocupa'),
+    veces: X.debe(X.en('veces'), 'veces'), vapor2: X.debe(X.en('vapor', 2), 'vapor 2'), arriba: X.debe(X.en('arriba'), 'arriba'),
+    piston: X.debe(X.en('pistón'), 'pistón'), gotas: X.debe(X.en('gotas'), 'gotas'), prende: X.debe(X.en('prende'), 'prende'),
+    bola: X.debe(X.en('bola'), 'bola'), entonces: X.debe(X.en('entonces'), 'entonces'), apaga: X.debe(X.en('apaga'), 'apaga'),
+    tapa: X.debe(X.en('tapa'), 'tapa'), muevas: X.debe(X.en('muevas'), 'muevas'), oxigeno: X.debe(X.en('oxígeno'), 'oxígeno'),
+    ahoga: X.debe(X.en('ahoga'), 'ahoga'), vaso: X.debe(X.en('vaso', 2), 'vaso 2'), beber: X.debe(X.en('bebértelo'), 'bebértelo'),
+  };
+  const camaras = [
+    { t: 0, x: 560, y: 780, z: 1.12, r: -1, rx: 6, ry: -7 },
+    { t: A.explota, x: 540, y: 700, z: 0.9, r: 1.2, rx: -4, ry: 4, dur: 0.6 },
+    { t: A.porque + 0.2, x: 500, y: 760, z: 1.3, r: 0, rx: 4, ry: -6, dur: 1.0 },
+    { t: A.arde + 0.3, x: 650, y: 760, z: 1.1, r: 0.6, rx: 0, ry: 8, dur: 1.2 },
+    { t: A.densa - 0.3, x: 540, y: 990, z: 1.75, r: -0.5, rx: 8, ry: -10, dur: 1.2 },
+    { t: A.fondo, x: 540, y: 1030, z: 2.5, r: 0.8, rx: 4, ry: 6, dur: 1.1 },
+    { t: A.golpe, x: 540, y: 1045, z: 2.9, r: -1, rx: -4, ry: -4, dur: 0.7 },
+    { t: A.vapor + 0.2, x: 540, y: 980, z: 1.8, r: 0, rx: 6, ry: 0, dur: 1.4 },
+    { t: A.vapor2, x: 540, y: 900, z: 1.35, r: 0.8, rx: -6, ry: 10, dur: 1.2 },
+    { t: A.gotas, x: 540, y: 640, z: 0.92, r: -1, rx: 10, ry: -6, dur: 1.0 },
+    { t: A.bola - 0.2, x: 540, y: 560, z: 0.74, r: 1.4, rx: -6, ry: 4, dur: 0.8 },
+    { t: A.entonces + 0.3, x: 560, y: 760, z: 1.0, r: 0, rx: 0, ry: 0, dur: 1.3 },
+    { t: A.apaga, x: 760, y: 980, z: 1.6, r: -0.6, rx: 6, ry: 12, dur: 1.0 },
+    { t: A.tapa, x: 560, y: 800, z: 1.15, r: 0.4, rx: 6, ry: -6, dur: 1.0 },
+    { t: A.muevas - 0.3, x: 720, y: 780, z: 1.3, r: -0.5, rx: 0, ry: 10, dur: 1.0 },
+    { t: A.oxigeno - 0.3, x: 540, y: 780, z: 1.25, r: 0.4, rx: 8, ry: 0, dur: 1.1 },
+    { t: A.vaso - 0.2, x: 480, y: 780, z: 1.05, r: -1, rx: 6, ry: -7, dur: 1.4 },
+  ];
+  camaras.slice(1).forEach((c) => X.sonido(c.t - (c.dur ?? 1.1) * 0.6, 'whoosh', 0.55));
+  X.sonido(A.explota, 'whoosh', 1.3); X.sonido(A.bola - 0.1, 'whoosh', 1.4); X.sonido(A.prende, 'swoosh', 0.8);
+  [A.porque, A.densa, A.hierve, A.piston, A.entonces, A.muevas, A.oxigeno].forEach((t) => X.sonido(t, 'pop', 0.5));
+  X.sonido(A.ocupa + 0.1, 'swoosh', 0.7); X.sonido(A.apaga + 0.2, 'click', 0.9); X.sonido(A.tapa + 0.55, 'click', 1.0);
+  X.sonido(A.ahoga, 'notificacion', 0.5); X.sonido(A.grados, 'pop', 0.4);
+
+  const T = {
+    vasoInclina: [0.05, 1.4], chorro: A.sarten, caeGota: A.arde - 0.2, llegaSup: A.densa + 0.2, llegaFondo: A.fondo + 0.1,
+    corteAbre: A.densa - 0.35, corteCierra: A.entonces, tapaCae: A.tapa + 0.15,
+  };
+  // ---------- llamas ----------
+  const az = X.azar(9);
+  const llamas = Array.from({ length: 13 }, (_, i) => {
+    const u = i / 12, x = 540 + (u - 0.5) * 520 + (az() - 0.5) * 30, y = 905 + Math.sin(u * Math.PI) * 26 - 8;
+    const o = mk('path', { fill: 'url(#g-llama)', opacity: 0.92 }, $('llamas')), n = mk('path', { fill: 'url(#g-llama-in)', opacity: 0.9 }, $('llamas'));
+    return { o, n, x, y, h: 140 + az() * 150 * Math.sin(u * Math.PI) + 50, w: 46 + az() * 34, s: az() * 50 };
+  });
+  const lengua = (x, y, w, h, sway) => `M${(x - w).toFixed(1)} ${y.toFixed(1)} C${(x - w * 1.05).toFixed(1)} ${(y - h * 0.38).toFixed(1)} ${(x + sway * 0.4 - w * 0.4).toFixed(1)} ${(y - h * 0.68).toFixed(1)} ${(x + sway).toFixed(1)} ${(y - h).toFixed(1)} C${(x + sway * 0.4 + w * 0.45).toFixed(1)} ${(y - h * 0.66).toFixed(1)} ${(x + w * 1.05).toFixed(1)} ${(y - h * 0.36).toFixed(1)} ${(x + w).toFixed(1)} ${y.toFixed(1)} Q${x.toFixed(1)} ${(y + w * 0.4).toFixed(1)} ${(x - w).toFixed(1)} ${y.toFixed(1)} Z`;
+  const dibujaLlamas = (t, L) => {
+    llamas.forEach((f, i) => {
+      if (L < 0.01) { f.o.setAttribute('d', ''); f.n.setAttribute('d', ''); return; }
+      const fl = 0.75 + 0.25 * X.ruidoF(t * 2.4 + f.s, 1) + 0.12 * Math.sin(t * 13 + f.s);
+      const h = f.h * fl * L, sway = 40 * X.ruidoF(t * 1.6 + f.s, 2) * L;
+      f.o.setAttribute('d', lengua(f.x, f.y, f.w * (0.55 + 0.45 * L), h, sway));
+      f.n.setAttribute('d', lengua(f.x + sway * 0.1, f.y, f.w * 0.5 * (0.55 + 0.45 * L), h * 0.55, sway * 0.5));
+    });
+    $('haloLlamas').setAttribute('opacity', (L * (0.85 + 0.15 * X.ruido(t * 3, 4))).toFixed(3));
+  };
+  const humoOscuro = X.humo($('humoOscuro'), { ruta: (u) => [540 + 40 * Math.sin(u * 5), 760 - 900 * u], n: 16, vida: 3.2, tam: [70, 190], color: '#2A221F', op: 0.5, semilla: 3, viento: [40, -60] });
+  const humoBlanco = X.humo($('humoOscuro'), { ruta: (u) => [540 + 300 * (u < 0.5 ? -1 : 1) * Math.min(1, u * 2) , 860 - 400 * u], n: 14, vida: 2.2, tam: [40, 120], color: '#9A918C', op: 0.4, semilla: 8, viento: [0, -50] });
+  // ---------- bola de fuego ----------
+  const lobulos = Array.from({ length: 14 }, (_, i) => ({ e: mk('ellipse', { fill: 'url(#g-fuego)' }, $('bola')), a: (i / 13) * 6.283 * 1.7, d: i === 0 ? 0 : 0.38 + az() * 0.3, k: 0.6 + az() * 0.5, s: az() * 40 }));
+  const humoBola = X.humo($('humoBola'), { ruta: (u) => [540 + 120 * Math.sin(u * 4), 380 - 700 * u], n: 14, vida: 2.6, tam: [120, 260], color: '#2B1E19', op: 0.55, semilla: 13, viento: [30, -40] });
+  const dibujaBola = (t, k) => {
+    const R = 560 * k, cy = X.lerp(880, 520, X.limita(k * 1.2));
+    lobulos.forEach((l, i) => {
+      if (k < 0.005) { l.e.setAttribute('rx', 0); l.e.setAttribute('ry', 0); return; }
+      const a = l.a + 0.4 * X.ruido(t * 0.8 + l.s, 1), d = l.d * R * (1 + 0.1 * X.ruido(t * 2 + l.s, 2));
+      const r = R * (i === 0 ? 0.75 : 0.48 * l.k) * (1 + 0.08 * X.ruido(t * 4 + l.s, 3));
+      l.e.setAttribute('cx', (540 + Math.cos(a) * d).toFixed(1)); l.e.setAttribute('cy', (cy + Math.sin(a) * d * 0.85).toFixed(1));
+      l.e.setAttribute('rx', r.toFixed(1)); l.e.setAttribute('ry', (r * 0.92).toFixed(1));
+    });
+    $('bola').setAttribute('opacity', X.limita(k * 3).toFixed(3));
+  };
+  // ---------- gotas que vuelan ----------
+  const gotas = Array.from({ length: 44 }, () => {
+    const g = mk('g', {}, $('gotasAire')), halo = mk('circle', { fill: 'url(#g-fuego)' }, g), c = mk('circle', { fill: '#FFB43A' }, g);
+    const ang = (az() - 0.5) * 2.1, v = 500 + az() * 550;
+    return { g, halo, c, x0: 540 + (az() - 0.5) * 140, vx: Math.sin(ang) * v, vy: -Math.cos(ang) * v * (0.8 + az() * 0.5), r: 5 + az() * 11, s: az() * 10 };
+  });
+  const dibujaGotas = (t, t0, tPrende, tFin) => {
+    gotas.forEach((p) => {
+      if (t < t0 || t > tFin + 0.6) { p.g.setAttribute('opacity', 0); return; }
+      const tau = (t - t0) * 0.36, x = p.x0 + p.vx * tau, y = 880 + p.vy * tau + 0.5 * 620 * tau * tau;
+      const ign = X.C.suave(X.seg(t, tPrende + p.s * 0.06, tPrende + 0.6 + p.s * 0.06));
+      p.g.setAttribute('transform', `translate(${x.toFixed(1)} ${y.toFixed(1)})`);
+      p.c.setAttribute('r', p.r); p.halo.setAttribute('r', (p.r * (1.6 + 4.5 * ign)).toFixed(1));
+      p.c.setAttribute('fill', ign > 0.5 ? '#FFF1B8' : '#FFB43A');
+      p.g.setAttribute('opacity', (1 - X.seg(t, tFin, tFin + 0.6)).toFixed(3));
+    });
+  };
+  // convección y burbujitas dentro del aceite
+  const conv = Array.from({ length: 5 }, (_, i) => mk('path', {}, $('conveccion')));
+  const burbujitas = X.humo($('burbujitas'), { ruta: (u) => [540 + 30 * Math.sin(u * 9), 1060 - 120 * u], n: 12, vida: 1.0, tam: [6, 16], color: '#FFFFFF', op: 0.8, semilla: 21, viento: [0, 0] });
+  // oxígeno que llega (y choca con la tapa)
+  const oxiL = X.particulas($('oxi'), { n: 12, ruta: (u) => [X.lerp(-80, 300, u), X.lerp(700, 830, u) - 40 * Math.sin(u * 3)], vuelta: 2.0, tam: [9, 15], color: '#8FD3FF', op: 0.9, semilla: 5, jitter: 30 });
+  const oxiR = X.particulas($('oxi'), { n: 12, ruta: (u) => [X.lerp(1160, 780, u), X.lerp(690, 830, u) - 40 * Math.sin(u * 3)], vuelta: 2.0, tam: [9, 15], color: '#8FD3FF', op: 0.9, semilla: 6, jitter: 30 });
+  // recursos: ondas, lupa, flecha, contador, destello
+  const ondaExp = X.onda($('ondas'), { x: 540, y: 820, color: '#FFB347', radio: 620, ancho: 22 });
+  const ondaBola = X.onda($('ondas'), { x: 540, y: 560, color: '#FF7A3A', radio: 900, ancho: 26 });
+  const ondaGolpe = X.onda($('ondas'), { x: 540, y: 1062, color: '#EAF6FF', radio: 90, ancho: 6 });
+  const ondaTapa = X.onda($('ondas'), { x: 540, y: 870, color: '#EAF6FF', radio: 380, ancho: 10 });
+  const ondaBoton = X.onda($('ondas'), { x: 838, y: 1126, color: '#5BE49B', radio: 90, ancho: 6 });
+  const flechaUp = X.flecha($('ondas'), { d: 'M700 1000 C730 900 720 760 680 640', color: '#EAF6FF', ancho: 10 });
+  const flechaUp2 = X.flecha($('ondas'), { d: 'M380 1000 C350 900 360 760 400 640', color: '#EAF6FF', ancho: 10 });
+  const lupa = X.lupa($('capaLupa'), { fuente: '#contenido', r: 82, zoom: 2.6 });
+  const cont = X.contador($('contador'), { desde: 1, hasta: 1700, sufijo: '', separador: '.' });
+  const dest = X.destello($('contadorW'));
+  const destCard = X.destello($('solucion'));
+  const subs = X.subtitulos($('subs'), { max: 3, y: 1470, claves: ['agua', 'sartén', 'explota', '100', 'grados', 'densa', 'hunde', 'fondo', 'hierve', 'golpe', 'vapor', '1700', 'pistón', 'gotas', 'ardiendo', 'fuego', 'apaga', 'tapa', 'muevas', 'oxígeno', 'ahoga', 'bebértelo'] });
+  const grano = X.grano($('lienzo'), 0.07);
+  const pp1 = X.primerPlano($('lienzo'), { n: 8, tipo: 'bokeh', color: '#FFB070', semilla: 31, prof: [1.7, 2.5], blur: [20, 36], op: [0.1, 0.24] });
+  const pp2 = X.primerPlano($('lienzo'), { n: 10, tipo: 'polvo', color: '#FFC46B', semilla: 52, prof: [1.4, 2.0], blur: [3, 8], op: [0.35, 0.7] });
+  const cam = $('cam');
+
+  const vasoPos = (t) => {
+    // del gancho a la cámara lenta: el vaso inclinado sobre la sartén; luego se va; al final vuelve derecho
+    const inc = X.C.firme(X.seg(t, T.vasoInclina[0], T.vasoInclina[1]));
+    const fuera = X.C.inOut(X.seg(t, A.gotas - 0.4, A.gotas + 0.6));
+    const vuelve = t < A.vaso - 0.3 ? 0 : X.C.natural((t - (A.vaso - 0.3)) / 1.0);
+    let x = 330, y = 520 - 60 * fuera, th = 58 * inc;
+    x = X.lerp(x, -300, fuera);
+    const xf = X.lerp(-300, 128, vuelve), yf = X.lerp(760, 958, vuelve);
+    if (t > A.vaso - 0.3) { x = xf; y = yf; th = 0; }
+    return { x, y, th };
+  };
+  const lipDe = (v) => { const a = v.th * Math.PI / 180; return [v.x + 66 * Math.cos(a) + 124 * Math.sin(a), v.y + 66 * Math.sin(a) - 124 * Math.cos(a)]; };
+
+  return (t) => {
+    X.camara(cam, t, camaras);
+    // sacudidas en las explosiones
+    let dx = 0, dy = 0;
+    [[A.explota, 26], [A.bola, 34], [T.tapaCae + 0.4, 6]].forEach(([t0, a]) => { if (t > t0) { const e = Math.exp(-5 * (t - t0)) * a; dx += e * Math.sin((t - t0) * 61); dy += e * Math.cos((t - t0) * 47); } });
+    $('sacude').setAttribute('transform', `translate(${dx.toFixed(2)} ${dy.toFixed(2)})`);
+    X.profundidad($('fondo'), 0.8);
+    X.desenfoqueFondo($('fondo'), { base: 1.2, porZoom: 7, max: 14 });
+    pp1(t); pp2(t); grano(t);
+    $('barra').style.width = (100 * t / X.dur).toFixed(2) + '%';
+
+    // estado del fuego: llamas normales; en la cámara lenta más tranquilas; tras la tapa se apagan
+    const tapaU = t < T.tapaCae ? 0 : X.C.firme((t - T.tapaCae) / 0.45);
+    const calma = X.C.suave(X.seg(t, A.densa - 0.4, A.densa + 0.4)) * (1 - X.C.suave(X.seg(t, A.vapor2, A.piston)));
+    let L = (1 - 0.6 * calma) * (1 - 0.95 * X.C.suave(X.seg(t, T.tapaCae + 0.3, A.ahoga + 0.2)));
+    dibujaLlamas(t, L * (tapaU > 0.9 ? 0.0 : 1));
+    if (tapaU > 0.9) $('llamasW').setAttribute('opacity', 0); else $('llamasW').removeAttribute('opacity');
+    humoOscuro.dibuja(t, -1, T.tapaCae + 0.2);
+    humoBlanco.dibuja(t, T.tapaCae + 0.45, A.ahoga + 0.8);
+    // fuego encendido en la vitro: se apaga con «apaga»
+    const off = X.C.suave(X.seg(t, A.apaga + 0.2, A.apaga + 1.4));
+    $('anillo').setAttribute('opacity', ((1 - off) * (0.75 + 0.1 * Math.sin(t * 5))).toFixed(3));
+    $('anillo2').setAttribute('opacity', (0.7 * (1 - off)).toFixed(3));
+    const colBoton = off > 0.05 ? '#5BE49B' : '#FF4A2A';
+    $('botonAro').setAttribute('stroke', colBoton); $('botonPalo').setAttribute('stroke', colBoton); $('puntos').setAttribute('opacity', (0.55 * (1 - off)).toFixed(3));
+    ondaBoton.dibuja(t, A.apaga + 0.2);
+    $('aceiteBrillo').setAttribute('cx', (470 + 30 * Math.sin(t * 1.3)).toFixed(1));
+
+    // vaso
+    const v = vasoPos(t);
+    $('vasoW').setAttribute('transform', `translate(${v.x.toFixed(1)} ${v.y.toFixed(1)}) rotate(${v.th.toFixed(2)})`);
+    const vaciado = X.seg(t, A.sarten, A.explota + 0.2) * 0.35 * (t < A.porque ? 1 : 1 - X.C.inOut(X.seg(t, A.porque, A.porque + 0.6)));
+    const nivel = -10 + 120 * vaciado;
+    $('aguaVaso').setAttribute('d', X.ola(-200, 200, nivel, 400, t, { amp: 4, largo: 60, vel: 3 }));
+    $('aguaVasoW').setAttribute('transform', `rotate(${(-v.th).toFixed(2)} 0 ${nivel.toFixed(1)})`);
+    // chorro del gancho (rebobina en «por qué»)
+    const lip = lipDe(v);
+    const ch = X.C.out(X.seg(t, A.sarten - 0.1, A.explota)) * (1 - X.C.inOut(X.seg(t, A.porque, A.porque + 0.5)));
+    if (ch > 0.01) {
+      const yEnd = X.lerp(lip[1], 890, ch), xEnd = X.lerp(lip[0], 545, ch);
+      $('chorro').setAttribute('d', `M${lip[0].toFixed(1)} ${lip[1].toFixed(1)} Q${(lip[0] + 40).toFixed(1)} ${(lip[1] + 60).toFixed(1)} ${xEnd.toFixed(1)} ${yEnd.toFixed(1)}`);
+      $('chorro').setAttribute('opacity', 0.9); $('chorro').setAttribute('stroke-width', (20 + 4 * Math.sin(t * 20)).toFixed(1));
+    } else $('chorro').setAttribute('opacity', 0);
+    // gota a cámara lenta: sale del borde del vaso, cae hasta el aceite
+    const caeU = X.seg(t, T.caeGota, T.llegaSup);
+    if (t > T.caeGota && t < T.llegaSup + 0.05) {
+      const u = X.C.in(caeU) * 0.85 + caeU * 0.15, gx = X.lerp(lip[0], 540, u), gy = X.lerp(lip[1] + 10, 900, u), st = 1 + 0.25 * Math.sin(t * 9);
+      $('gotaCae').setAttribute('transform', `translate(${gx.toFixed(1)} ${gy.toFixed(1)}) scale(${(1 / st).toFixed(3)} ${st.toFixed(3)})`); $('gotaCae').setAttribute('opacity', X.limita(caeU * 8).toFixed(3));
+      $('gotaCaeB').setAttribute('cx', -5); $('gotaCaeB').setAttribute('cy', -6);
+    } else $('gotaCae').setAttribute('opacity', 0);
+
+    // corte de la sartén: se abre desde el centro
+    const ab = (t < T.corteAbre ? 0 : X.C.natural((t - T.corteAbre) / 0.9)) * (1 - X.C.inOut(X.seg(t, T.corteCierra, T.corteCierra + 0.7)));
+    $('corteR').setAttribute('x', (540 - 340 * ab).toFixed(1)); $('corteR').setAttribute('width', (680 * ab).toFixed(1));
+    $('frente').setAttribute('opacity', (1 - 0.9 * X.limita(ab)).toFixed(3));
+    $('corteBorde').style.strokeDashoffset = (-t * 40).toFixed(1);
+    conv.forEach((p, i) => { let d = ''; const y0 = 940 + i * 26; for (let k = 0; k <= 20; k++) { const x = 250 + k * 29; d += (k ? ' L' : 'M') + x + ' ' + (y0 + 7 * Math.sin(x / 40 + t * 2 + i)).toFixed(1); } p.setAttribute('d', d); });
+    // gota hundiéndose en la sección
+    const hu = X.seg(t, T.llegaSup, T.llegaFondo), gyS = X.lerp(915, 1052, X.C.inOut(hu));
+    const tiembla = t > A.hierve ? 3 * Math.sin(t * 40) * X.seg(t, A.hierve, A.golpe) : 0;
+    const crece = t < A.vapor ? 0 : X.C.natural((t - A.vapor) / 2.0);
+    const visG = t > T.llegaSup && t < A.vapor + 0.3 ? 1 : 0;
+    $('gotaSec').setAttribute('transform', `translate(${(540 + tiembla).toFixed(1)} ${gyS.toFixed(1)})`); $('gotaSec').setAttribute('opacity', visG);
+    burbujitas.dibuja(t, A.hierve, A.vapor + 0.6);
+    ondaGolpe.dibuja(t, A.golpe);
+    // burbuja de vapor que crece (×1.700) y luego sube empujando
+    const sube = X.C.inOut(X.seg(t, A.vapor2 + 0.2, A.piston + 0.4));
+    const rB = 18 + 150 * crece, yB = X.lerp(1068 - rB * 0.85, 940, sube);
+    $('burbuja').setAttribute('opacity', t > A.vapor - 0.05 && t < A.gotas + 0.2 ? (1 - X.seg(t, A.piston + 0.2, A.gotas)).toFixed(3) : 0);
+    $('burC').setAttribute('r', (rB * (1 + 0.04 * Math.sin(t * 11))).toFixed(1)); $('burC').setAttribute('cx', 540); $('burC').setAttribute('cy', yB.toFixed(1));
+    // columna de aceite (pistón)
+    const gH = 420 * X.C.out(X.seg(t, A.vapor2 + 0.4, A.piston + 0.5)), gOp = 1 - X.seg(t, A.gotas, A.gotas + 0.5);
+    if (gH > 2 && gOp > 0) {
+      const top = 900 - gH, w = 130 + 20 * Math.sin(t * 7);
+      $('geiser').setAttribute('d', `M${540 - w} 910 C${540 - w * 0.6} 860 ${540 - 50} ${top + 80} ${540 - 60} ${top + 30} Q540 ${top - 40} ${540 + 60} ${top + 30} C${540 + 50} ${top + 80} ${540 + w * 0.6} 860 ${540 + w} 910 Z`);
+      $('geiser').setAttribute('opacity', gOp.toFixed(3));
+    } else $('geiser').setAttribute('opacity', 0);
+    flechaUp.dibuja(t, A.arriba - 0.1, 0.6, A.gotas); flechaUp2.dibuja(t, A.arriba, 0.6, A.gotas);
+    dibujaGotas(t, A.gotas - 0.1, A.prende, A.bola + 0.3);
+
+    // bola de fuego: avance en «explota» (se rebobina) y la de verdad en «bola»
+    const kPrev = (t < A.explota - 0.05 ? 0 : X.C.out(X.seg(t, A.explota - 0.05, A.explota + 0.35))) * 0.85 * (1 - X.C.inOut(X.seg(t, A.porque - 0.1, A.porque + 0.5)));
+    const kBola = X.C.out(X.seg(t, A.prende + 0.9, A.bola + 0.2)) * (1 - X.C.inOut(X.seg(t, A.entonces, A.entonces + 0.8)));
+    const kb = Math.max(kPrev, kBola);
+    dibujaBola(t, kb);
+    humoBola.dibuja(t, A.bola - 0.2, A.entonces + 0.2);
+    ondaExp.dibuja(t, A.explota); ondaBola.dibuja(t, A.bola);
+    const fl = Math.max(Math.exp(-6 * Math.max(0, t - A.explota)) * (t >= A.explota ? 1 : 0), Math.exp(-4 * Math.max(0, t - A.bola)) * (t >= A.bola ? 1 : 0));
+    $('flash').style.opacity = (0.85 * fl).toFixed(3);
+    $('tinte').style.opacity = (0.45 * kb).toFixed(3);
+
+    // termómetro
+    const te = (t < A.arde ? 0 : X.C.firme((t - A.arde) / 0.7)) * (1 - X.C.inOut(X.seg(t, A.densa - 0.5, A.densa)));
+    $('termo').style.opacity = X.limita(te * 1.5).toFixed(3); $('termo').style.transform = `translateY(${(60 * (1 - te)).toFixed(1)}px)`;
+    const col = X.C.firme(X.seg(t, A.arde + 0.3, A.grados + 0.6)) * 410;
+    $('termoCol').setAttribute('y', (790 - col).toFixed(1)); $('termoCol').setAttribute('height', (30 + col).toFixed(1));
+    X.anima($('termoTop'), t, { entra: A.grados + 0.15, dur: 0.6, sale: A.densa - 0.5, desde: { y: 30, blur: 12, s: 0.9 }, curva: 'blando' });
+
+    // tapa: cae y cierra
+    const yT = X.lerp(-500, 874, tapaU), vis = t > T.tapaCae - 0.05;
+    $('tapaW').setAttribute('transform', `translate(540 ${yT.toFixed(1)})`); $('tapaW').setAttribute('opacity', vis ? 1 : 0);
+    ondaTapa.dibuja(t, T.tapaCae + 0.45);
+    X.anima($('noMover'), t, { entra: A.muevas - 0.1, dur: 0.55, sale: A.oxigeno - 0.2, desde: { s: 0.4, y: 0, blur: 10 }, curva: 'blando' });
+    oxiL.dibuja(t, A.oxigeno - 0.3, A.ahoga + 0.3); oxiR.dibuja(t, A.oxigeno - 0.3, A.ahoga + 0.3);
+    X.anima($('tic'), t, { entra: A.ahoga + 0.1, dur: 0.55, sale: A.vaso - 0.2, desde: { s: 0.3, y: 0, blur: 10 }, curva: 'blando' });
+
+    // lupa sobre la gota en el fondo
+    const lu = (t < A.fondo ? 0 : X.C.blando((t - A.fondo) / 0.6)) * (1 - X.C.inOut(X.seg(t, A.vapor - 0.2, A.vapor + 0.3)));
+    if (lu > 0.01) lupa.dibuja(t, { x: 585, y: 965, mira: [540 + tiembla * 0, gyS], z: 2.4, a: lu }); else lupa.el.setAttribute('opacity', 0);
+
+    // HUD
+    X.anima($('titular'), t, { entra: 0.0, dur: 0.5, sale: A.porque - 0.25, desde: { y: -40, blur: 18, s: 0.94 }, curva: 'firme' });
+    X.anima($('pLenta'), t, { entra: A.porque, dur: 0.5, sale: A.grados - 0.3, desde: { y: -30, blur: 12 }, curva: 'firme' });
+    X.anima($('cDensa'), t, { entra: A.densa, dur: 0.6, sale: A.fondo, desde: { x: -60, y: 0, blur: 14, s: 0.9 }, curva: 'blando' });
+    X.anima($('cFlota'), t, { entra: A.densa + 0.45, dur: 0.6, sale: A.fondo, desde: { x: 60, y: 0, blur: 14, s: 0.9 }, curva: 'blando' });
+    X.anima($('cGolpe'), t, { entra: A.hierve, dur: 0.55, sale: A.vapor - 0.1, desde: { x: -60, y: 0, blur: 14, s: 0.9 }, curva: 'blando' });
+    X.anima($('contadorW'), t, { entra: A.ocupa - 0.1, dur: 0.6, sale: A.vapor2 + 0.2, desde: { y: -30, s: 0.7, blur: 18 }, curva: 'blando' });
+    cont.dibuja(t, A.ocupa, A.veces + 0.6 - A.ocupa);
+    if (t >= A.ocupa && t <= A.veces + 0.7) $('contador').textContent = '×' + $('contador').textContent.replace('×', '');
+    else if (t < A.ocupa) $('contador').textContent = '×1'; else $('contador').textContent = '×1.700';
+    dest.dibuja(t, A.veces + 0.5, 0.8);
+    X.anima($('cPiston'), t, { entra: A.piston - 0.1, dur: 0.55, sale: A.gotas - 0.1, desde: { x: -60, y: 0, blur: 14, s: 0.9 }, curva: 'blando' });
+    X.anima($('pBola'), t, { entra: A.bola, dur: 0.45, sale: A.entonces - 0.1, desde: { s: 0.6, y: 0, blur: 16 }, curva: 'blando' });
+    X.anima($('solucion'), t, { entra: A.apaga - 0.55, dur: 0.7, sale: A.vaso - 0.4, desde: { y: -50, blur: 20, s: 0.94 }, curva: 'firme' });
+    X.anima($('f1'), t, { entra: A.apaga - 0.1, dur: 0.5, desde: { x: -40, y: 0, blur: 12, o: 0.15 }, curva: 'blando' });
+    X.anima($('f2'), t, { entra: A.tapa - 0.1, dur: 0.5, desde: { x: -40, y: 0, blur: 12, o: 0.15 }, curva: 'blando' });
+    X.anima($('f3'), t, { entra: A.muevas - 0.2, dur: 0.5, desde: { x: -40, y: 0, blur: 12, o: 0.15 }, curva: 'blando' });
+    destCard.dibuja(t, A.apaga + 0.1, 0.9);
+    X.anima($('cOxi'), t, { entra: A.oxigeno, dur: 0.55, sale: A.vaso - 0.3, desde: { y: 30, blur: 14, s: 0.9 }, curva: 'blando' });
+    X.anima($('pFinal'), t, { entra: A.vaso + 0.2, dur: 0.6, desde: { y: -30, blur: 12 }, curva: 'firme' });
+    subs.dibuja(t);
+  };
+});
+</script></body></html>
