@@ -32,7 +32,7 @@ if (!chrome) { console.error("No encuentro Chrome ni Edge. Instala Google Chrome
 const [mode = "music", ...rest] = process.argv.slice(2);
 
 (async () => {
-  const browser = await puppeteer.launch({ executablePath: chrome, headless: "new", args: ["--autoplay-policy=no-user-gesture-required"] });
+  const browser = await puppeteer.launch({ executablePath: chrome, headless: "new", args: ["--autoplay-policy=no-user-gesture-required", ...(process.getuid && process.getuid() === 0 ? ["--no-sandbox"] : [])] });
   const page = await browser.newPage();
   page.on("pageerror", (e) => console.error("Error en SynthFlow:", e.message));
   await page.goto("file:///" + STUDIO.replace(/\\/g, "/"), { waitUntil: "domcontentloaded" });

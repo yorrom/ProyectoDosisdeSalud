@@ -2,5 +2,7 @@
   "name": "editar-reels-claude-scripts",
   "private": true,
   "description": "Dependencias de los scripts de la skill editar-reels-claude (render sin interfaz de SynthFlow).",
-  "dependencies": { "puppeteer-core": "^24.0.0" }
+  "dependencies": {
+    "puppeteer-core": "^25.17.0"
+  }
 }
